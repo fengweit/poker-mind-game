@@ -1,4 +1,15 @@
 import { createDeck, shuffle, bestOfSeven, compareHands, calculatePotOdds, estimateEquity, preflopStrength } from './core.js';
+import {
+  actorForStreet,
+  applyBetAction,
+  canRaise,
+  createBettingState,
+  formatStackDelta,
+  postBlinds,
+  settlePot as settleBettingPot,
+  splitPot as splitBettingPot,
+  toCall as bettingToCall
+} from './betting.js';
 
 const $ = id => document.getElementById(id);
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
@@ -14,7 +25,8 @@ const ui = {
 
 const state = {
   stacks: { player: 1000, ai: 1000 }, bets: { player: 0, ai: 0 }, pot: 0, deck: [], player: [], ai: [], board: [],
-  dealer: 'player', street: 0, currentBet: 0, actor: null, acted: new Set(), handOver: false, started: false,
+  dealer: 'player', handDealer: 'player', street: 0, currentBet: 0, actor: null, acted: new Set(), raiseLocked: [],
+  lastFullRaise: 20, roundComplete: false, handOver: false, paid: false, winner: null, started: false,
   sound: false, motion: !reducedMotion.matches,
   stats: { hands: 0, playerFolds: 0, playerRaises: 0, aiRaises: 0, aiCalls: 0, aiFolds: 0 },
   log: [], initialStacks: null, lastEquity: 0
@@ -35,6 +47,7 @@ function renderCards(container, cards, hidden = false) {
   container.replaceChildren(...cards.map((card, i) => cardEl(card, hidden, i * 90)));
 }
 function chips(n) { return Math.max(0, Math.round(n)).toLocaleString(); }
+
 function updateStacks() { ui.playerStack.textContent = chips(state.stacks.player); ui.aiStack.textContent = chips(state.stacks.ai); ui.pot.textContent = chips(state.pot); }
 function say(text) { ui.whisper.textContent = text; }
 function tone(freq = 220, duration = .08, type = 'sine', volume = .035) {
@@ -44,14 +57,29 @@ function tone(freq = 220, duration = .08, type = 'sine', volume = .035) {
   osc.type = type; osc.frequency.setValueAtTime(freq, ctx.currentTime); gain.gain.setValueAtTime(volume, ctx.currentTime);
   gain.gain.exponentialRampToValueAtTime(.0001, ctx.currentTime + duration); osc.connect(gain).connect(ctx.destination); osc.start(); osc.stop(ctx.currentTime + duration);
 }
-function commit(who, amount) {
-  const paid = Math.min(Math.max(0, amount), state.stacks[who]);
-  state.stacks[who] -= paid; state.bets[who] += paid; state.pot += paid; updateStacks();
-  if (paid) tone(110 + paid, .08, 'triangle');
-  return paid;
-}
 function other(who) { return who === 'player' ? 'ai' : 'player'; }
-function toCall(who) { return Math.max(0, state.currentBet - state.bets[who]); }
+function bettingSnapshot() {
+  return createBettingState({
+    stacks: state.stacks, bets: state.bets, pot: state.pot, currentBet: state.currentBet,
+    actor: state.actor, dealer: state.handDealer, lastFullRaise: state.lastFullRaise,
+    acted: [...state.acted], raiseLocked: state.raiseLocked, roundComplete: state.roundComplete,
+    handOver: state.handOver, winner: state.winner, paid: state.paid
+  });
+}
+function syncBetting(next, committed = 0) {
+  state.stacks = { ...next.stacks }; state.bets = { ...next.bets }; state.pot = next.pot;
+  state.currentBet = next.currentBet; state.actor = next.actor; state.lastFullRaise = next.lastFullRaise;
+  state.acted = new Set(next.acted); state.raiseLocked = [...next.raiseLocked]; state.roundComplete = next.roundComplete;
+  state.handOver = next.handOver; state.winner = next.winner; state.paid = next.paid;
+  updateStacks(); if (committed > 0) tone(110 + committed, .08, 'triangle');
+}
+function takeBetAction(who, action) {
+  const before = state.stacks[who];
+  const next = applyBetAction(bettingSnapshot(), who, action);
+  syncBetting(next, before - next.stacks[who]);
+  return next;
+}
+function toCall(who) { return bettingToCall(bettingSnapshot(), who); }
 
 function setControls(enabled) {
   const call = toCall('player');
@@ -60,14 +88,14 @@ function setControls(enabled) {
   ui.checkText.textContent = call ? `CALL ${chips(Math.min(call, state.stacks.player))}` : 'CHECK';
   ui.checkSub.textContent = call ? 'Match the pressure' : 'Keep pressure neutral';
   check.disabled = !enabled;
-  const minTo = Math.min(state.bets.player + state.stacks.player, Math.max(state.currentBet * 2 || 20, state.currentBet + 20));
+  const minTo = Math.min(state.bets.player + state.stacks.player, state.currentBet + state.lastFullRaise);
   const maxTo = state.bets.player + state.stacks.player;
   ui.raiseSlider.min = minTo; ui.raiseSlider.max = Math.max(minTo, maxTo); ui.raiseSlider.step = 10;
   ui.raiseSlider.value = Math.min(maxTo, Math.max(minTo, Number(ui.raiseSlider.value)));
   ui.raiseAmount.textContent = chips(ui.raiseSlider.value);
   ui.raiseText.textContent = state.currentBet ? 'RAISE' : 'BET';
   ui.raiseSub.textContent = `Make it ${chips(ui.raiseSlider.value)}`;
-  document.querySelector('[data-action="raise"]').disabled = !enabled || maxTo <= state.currentBet || state.stacks.ai === 0;
+  document.querySelector('[data-action="raise"]').disabled = !enabled || !canRaise(bettingSnapshot(), 'player');
   document.querySelector('[data-action="fold"]').disabled = !enabled || call === 0;
   ui.decision.textContent = enabled ? 'YOUR DECISION' : (state.handOver ? 'HAND COMPLETE' : 'VESPER IS THINKING');
   ui.toCall.textContent = call ? `${chips(call)} to call · ${chips(state.pot)} in pot` : 'Check or apply pressure';
@@ -92,8 +120,8 @@ function aiDecision() {
   const adjusted = handStrength + noise;
   if (call > 0 && adjusted < potOdds - .08 && Math.random() > .12) return { type:'fold' };
   const aggression = adjusted + (profile.exploitBluff ? .12 : 0) - (profile.trap ? .07 : 0);
-  if (state.stacks.ai > call + 20 && (aggression > .67 || (profile.exploitBluff && Math.random() < .25))) {
-    const target = Math.min(state.bets.ai + state.stacks.ai, Math.max(state.currentBet * 2, state.currentBet + Math.max(20, Math.round(state.pot * .55 / 10) * 10)));
+  if (canRaise(bettingSnapshot(), 'ai') && state.stacks.ai > call + 20 && (aggression > .67 || (profile.exploitBluff && Math.random() < .25))) {
+    const target = Math.min(state.bets.ai + state.stacks.ai, Math.max(state.currentBet + state.lastFullRaise, state.currentBet + Math.max(20, Math.round(state.pot * .55 / 10) * 10)));
     return { type:'raise', target };
   }
   return { type: call ? 'call' : 'check' };
@@ -103,12 +131,12 @@ async function actAI() {
   if (state.handOver || state.actor !== 'ai') return;
   setControls(false); ui.aiRead.textContent = 'READING THE LINE'; await wait(550 + Math.random() * 450);
   const move = aiDecision();
-  if (move.type === 'fold') { state.stats.aiFolds++; state.log.push('Vesper folded'); say('Vesper releases the hand. Pressure changed the outcome.'); award('player', 'VESPER FOLDS'); return; }
+  if (move.type === 'fold') { takeBetAction('ai', { type: 'fold' }); state.stats.aiFolds++; state.log.push('Vesper folded'); say('Vesper releases the hand. Pressure changed the outcome.'); award('player', 'VESPER FOLDS'); return; }
   if (move.type === 'raise') {
-    const amount = move.target - state.bets.ai; commit('ai', amount); state.currentBet = state.bets.ai; state.acted = new Set(['ai']); state.stats.aiRaises++;
+    takeBetAction('ai', move); state.stats.aiRaises++;
     state.log.push(`Vesper raised to ${state.currentBet}`); say(`Vesper raises to ${chips(state.currentBet)}. Is it strength—or a story?`); shake();
   } else {
-    const call = toCall('ai'); commit('ai', call); state.acted.add('ai'); state.stats.aiCalls += call > 0 ? 1 : 0;
+    const call = toCall('ai'); takeBetAction('ai', { type: call ? 'call' : 'check' }); state.stats.aiCalls += call > 0 ? 1 : 0;
     state.log.push(call ? `Vesper called ${call}` : 'Vesper checked'); say(call ? 'Vesper calls. Their range narrows.' : 'Vesper checks. Information, or misdirection?');
   }
   ui.aiRead.textContent = profileLabel();
@@ -118,13 +146,13 @@ async function actAI() {
 async function playerAction(type) {
   if (state.handOver || state.actor !== 'player') return;
   setControls(false);
-  if (type === 'fold') { state.stats.playerFolds++; state.log.push('You folded'); award('ai', 'YOU FOLD'); return; }
+  if (type === 'fold') { takeBetAction('player', { type: 'fold' }); state.stats.playerFolds++; state.log.push('You folded'); award('ai', 'YOU FOLD'); return; }
   if (type === 'check') {
-    const call = toCall('player'); commit('player', call); state.acted.add('player');
+    const call = toCall('player'); takeBetAction('player', { type: call ? 'call' : 'check' });
     state.log.push(call ? `You called ${call}` : 'You checked'); say(call ? 'You pay for the next piece of information.' : 'You keep the pot controlled.');
   } else if (type === 'raise') {
-    const target = Number(ui.raiseSlider.value), amount = target - state.bets.player; commit('player', amount); state.currentBet = state.bets.player;
-    state.acted = new Set(['player']); state.stats.playerRaises++; state.log.push(`You raised to ${state.currentBet}`); say('You apply pressure. Vesper must reveal a preference.'); shake();
+    const target = Number(ui.raiseSlider.value); takeBetAction('player', { type: 'raise', target });
+    state.stats.playerRaises++; state.log.push(`You raised to ${state.currentBet}`); say('You apply pressure. Vesper must reveal a preference.'); shake();
   }
   await continueRound('player');
 }
@@ -132,23 +160,24 @@ async function playerAction(type) {
 async function continueRound(lastActor) {
   updateInspector();
   if (state.handOver) return;
-  const bothMatched = state.bets.player === state.bets.ai;
-  if ((state.stacks.player === 0 || state.stacks.ai === 0) && bothMatched) { await runout(); return; }
-  if (bothMatched && state.acted.has('player') && state.acted.has('ai')) { await advanceStreet(); return; }
+  if ((state.stacks.player === 0 || state.stacks.ai === 0) && state.roundComplete) { await runout(); return; }
+  if (state.roundComplete) { await advanceStreet(); return; }
   state.actor = other(lastActor);
   if (state.actor === 'ai') await actAI(); else setControls(true);
 }
 
-async function advanceStreet() {
+async function advanceStreet(runoutOnly = false) {
   if (state.street === 3) { showdown(); return; }
-  state.street++; state.bets = { player:0, ai:0 }; state.currentBet = 0; state.acted = new Set();
+  state.street++; state.bets = { player:0, ai:0 }; state.currentBet = 0; state.acted = new Set(); state.raiseLocked = [];
+  state.lastFullRaise = 20; state.roundComplete = false;
   const count = state.street === 1 ? 3 : 1;
   for (let i = 0; i < count; i++) { state.board.push(state.deck.pop()); renderCards(ui.community, state.board); tone(320 + i * 40, .1); await wait(180); }
   ui.street.textContent = streetNames[state.street]; say(streetInsight()); updateInspector();
-  state.actor = state.dealer === 'player' ? 'ai' : 'player';
+  if (runoutOnly) return;
+  state.actor = actorForStreet(state.handDealer, state.street);
   if (state.actor === 'ai') await actAI(); else setControls(true);
 }
-async function runout() { setControls(false); while (state.street < 3) await advanceStreet(); }
+async function runout() { setControls(false); while (state.street < 3) await advanceStreet(true); showdown(); }
 
 function showdown() {
   state.handOver = true; setControls(false); ui.table.classList.add('slow'); renderCards(ui.aiCards, state.ai, false); tone(85,.5,'sawtooth',.025);
@@ -158,12 +187,12 @@ function showdown() {
   else splitPot(p, a);
 }
 function splitPot(p, a) {
-  const half = Math.floor(state.pot / 2); state.stacks.player += half; state.stacks.ai += state.pot - half; state.pot = 0; updateStacks();
+  syncBetting(splitBettingPot(bettingSnapshot()));
   showReview('SPLIT POT', `Both players show ${p.name}. Identical value; different private stories.`, p, a, 'A tie can feel like a near-miss. Notice that feeling—outcomes are noisy, decision quality is the durable signal.');
 }
 function award(winner, title, hands = null) {
-  if (state.handOver && state.pot === 0) return;
-  state.handOver = true; const amount = state.pot; state.stacks[winner] += amount; state.pot = 0; updateStacks(); setControls(false);
+  if (state.paid) return;
+  const amount = state.pot; syncBetting(settleBettingPot(bettingSnapshot(), winner)); setControls(false);
   const summary = winner === 'player' ? `You collect ${chips(amount)} virtual chips.` : `Vesper collects ${chips(amount)} virtual chips.`;
   const p = hands?.p || (state.board.length >= 3 ? bestOfSeven([...state.player, ...state.board]) : null);
   const a = hands?.a || (state.board.length >= 3 ? bestOfSeven([...state.ai, ...state.board]) : null);
@@ -175,7 +204,7 @@ function award(winner, title, hands = null) {
 function showReview(title, summary, p, a, note) {
   ui.resultTitle.textContent = title; ui.resultSummary.textContent = summary;
   const delta = state.stacks.player - state.initialStacks.player;
-  ui.reviewGrid.innerHTML = `<div><span>YOUR BEST</span><strong>${p?.name || 'Folded'}</strong></div><div><span>VESPER HELD</span><strong>${a?.name || 'Unrevealed'}</strong></div><div><span>STACK CHANGE</span><strong>${delta >= 0 ? '+' : ''}${chips(delta)}</strong></div>`;
+  ui.reviewGrid.innerHTML = `<div><span>YOUR BEST</span><strong>${p?.name || 'Folded'}</strong></div><div><span>VESPER HELD</span><strong>${a?.name || 'Unrevealed'}</strong></div><div><span>STACK CHANGE</span><strong>${formatStackDelta(delta)}</strong></div>`;
   ui.mindNote.textContent = note; ui.result.classList.remove('hidden');
 }
 
@@ -220,12 +249,13 @@ function syncMotionControl() {
 async function newHand() {
   ui.result.classList.add('hidden'); ui.table.classList.remove('slow');
   if (state.stacks.player < 20 || state.stacks.ai < 20) state.stacks = { player:1000, ai:1000 };
-  state.stats.hands++; state.handOver = false; state.deck = shuffle(createDeck()); state.board = []; state.pot = 0; state.street = 0;
-  state.player = [state.deck.pop(), state.deck.pop()]; state.ai = [state.deck.pop(), state.deck.pop()]; state.bets = {player:0,ai:0}; state.currentBet = 20; state.acted = new Set(); state.log = [];
+  state.stats.hands++; state.handDealer = state.dealer; state.deck = shuffle(createDeck()); state.board = []; state.street = 0;
+  state.player = [state.deck.pop(), state.deck.pop()]; state.ai = [state.deck.pop(), state.deck.pop()]; state.log = [];
   state.initialStacks = {...state.stacks}; ui.community.replaceChildren(); ui.street.textContent = 'PRE-FLOP'; renderCards(ui.playerCards, state.player); renderCards(ui.aiCards, state.ai, true);
-  ui.playerDealer.classList.toggle('visible', state.dealer === 'player'); ui.aiDealer.classList.toggle('visible', state.dealer === 'ai');
-  const sb = state.dealer, bb = other(sb); commit(sb, 10); commit(bb, 20); state.log.push(`${sb === 'player' ? 'You post' : 'Vesper posts'} small blind`);
-  say('The cards are random. Your decisions are not.'); updateInspector(); state.actor = state.dealer;
+  ui.playerDealer.classList.toggle('visible', state.handDealer === 'player'); ui.aiDealer.classList.toggle('visible', state.handDealer === 'ai');
+  const opened = postBlinds(createBettingState({ stacks: state.stacks, dealer: state.handDealer }));
+  syncBetting(opened, 30); state.log.push(`${state.handDealer === 'player' ? 'You post' : 'Vesper posts'} small blind`);
+  say('The cards are random. Your decisions are not.'); updateInspector();
   if (state.actor === 'ai') await actAI(); else setControls(true);
   state.dealer = other(state.dealer);
 }
