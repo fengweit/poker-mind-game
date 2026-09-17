@@ -4,9 +4,9 @@
 Original cinematic poker game with a cash-revenue validation path. No guaranteed profit; real-money wagering blocked on legal, payment and security gates.
 
 ## Current phase
-P0.4 and P1.1 acceptance are verified. The original Sol subagent timed out, so this recovery run reviewed commit `4337dbbfa1001bf0b343b02592bafce4be63945d` directly. Prototype files are `index.html`, `styles.css`, `social-preview.svg`, `package.json`, `src/core.js`, `src/game.js`, and `test/core.test.js`; there was no separate builder handoff. The renderer and game transitions currently share `src/game.js`; deterministic hand primitives and equity live in `src/core.js`.
+P0.4, P1.1, and P1.2 are verified. The recovered prototype remains renderer/browser-coupled in `src/game.js`; deterministic hand primitives and equity live in `src/core.js`. P1.2 added explicit wheel, dual-trips full-house, quads-kicker, board-tie, and full flush-lexicographic coverage. The existing evaluator passed those additions immediately, so this is characterization evidence, not fabricated RED.
 
-`npm test` passed 8/8, and `node --check src/core.js src/game.js` passed. A real loopback browser smoke completed a fold and a five-card-board showdown with opponent reveal, pot settlement, and no captured application errors. At 390×844 emulation the inspector control was visible but failed to open because `ui.inspector` was never bound; the run observed this failure, added the missing binding, and verified the class toggles plus keyboard fold. This is useful smoke evidence, not P1.6 completion: raise/all-in, reset, rapid-input, richer console coverage, and measured performance remain unverified.
+The settled result overlay defect is fixed and regression-tested: it now owns a z-index above table/scanlines, uses an opaque backdrop/card, remains inert while hidden, and disables card/table/result motion under OS reduced-motion. The motion control truthfully stays OFF and disabled while that preference is active. Final loopback browser proof waited 1.8 seconds after fold: overlay visible at opacity 1/z-index 30, result card top-painted, opaque computed colors, and zero captured JS errors. Private screenshot: `artifacts/private/browser-smoke/2026-09-16-settled-overlay-fixed.png`. This does not complete P1.6: raise/all-in, reset, full showdown repetition, touch controls, and measured performance remain pending.
 
 ## Verified evidence
 - Public repo created: https://github.com/fengweit/poker-mind-game
@@ -19,10 +19,10 @@ P0.4 and P1.1 acceptance are verified. The original Sol subagent timed out, so t
 - Independent read-only review inspected the diff, reran tests/checks, and found the code/scope/secret claims safe. Its only initial block was the stale pre-work heartbeat; that status defect was corrected before commit.
 
 ## Next source of truth
-`docs/CHECKLIST.md`, beginning P1.2 ranking edge coverage. Then P1.3 must extract or otherwise test real betting transitions before browser acceptance can be trusted. Do not mark P1.6 from this smoke alone.
+`docs/CHECKLIST.md`, beginning P1.3. A read-only architecture cut found one bounded path: extract a pure `src/betting.js`, test it in `test/game.test.js`, and integrate only betting transitions into the actual `src/game.js` path. Keep cards, AI, rendering, and review UI out of that extraction. Do not mark P1.6 from current smoke alone.
 
 ## Durable continuation
-Job `f81afb3d50a0` is registered and read back as enabled, every 30 minutes for at most 12 runs. First scheduled run: 2026-09-16 22:09 EDT. Scheduler reports gateway running. No scheduled run has completed yet; registration is not execution proof. Run outputs are local, with progress committed here. Stop early after accepted launch or external-only blockers.
+Job `f81afb3d50a0` is enabled every 30 minutes for at most 12 runs. At least this scheduled run has completed real implementation/review work; the prior “no run completed” claim was stale. Run outputs are local, with progress committed here. Stop early after accepted launch or external-only blockers.
 
 ## Blockers / risks
-No verified publishing identity, checkout, gambling licenses or revenue. Owner must rotate X credentials exposed to prior session context. Browser smoke found the desktop result treatment visually low-contrast; address this in the cinematic/accessibility cuts after engine correctness. GitHub Pages must stage a public allowlist, not upload the whole repository.
+No verified publishing identity, checkout, gambling licenses or revenue. Owner must rotate X credentials exposed to prior session context. P1.3 remains a correctness risk: current browser-coupled betting silently clamps invalid amounts, conflates check/call, mishandles some short all-ins/refunds, and can use the next hand's dealer for postflop order. GitHub Pages must stage a public allowlist, not upload the whole repository.

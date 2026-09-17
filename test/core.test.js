@@ -42,15 +42,58 @@ test('ace can play low in a wheel straight', () => {
   assert.deepEqual(hand.score.slice(0, 2), [4, 5]);
 });
 
+test('wheel straight loses to a six-high straight', () => {
+  const wheel = evaluate([C(14),C(2,'h'),C(3,'d'),C(4,'c'),C(5)]);
+  const sixHigh = evaluate([C(6),C(5,'h'),C(4,'d'),C(3,'c'),C(2)]);
+  assert.deepEqual(wheel.score, [4, 5]);
+  assert.deepEqual(sixHigh.score, [4, 6]);
+  assert.equal(compareHands(wheel, sixHigh), -1);
+});
+
 test('best of seven selects strongest five-card hand', () => {
   const result = bestOfSeven([C(14,'h'),C(13,'h'),C(12,'h'),C(11,'h'),C(10,'h'),C(2),C(2,'d')]);
   assert.equal(result.name, 'Royal Flush');
   assert.equal(result.cards.length, 5);
 });
 
+test('best of seven full house chooses higher trips when two trip ranks exist', () => {
+  const result = bestOfSeven([
+    C(14,'s'), C(14,'h'), C(14,'d'),
+    C(13,'s'), C(13,'h'), C(13,'d'),
+    C(2,'c')
+  ]);
+  assert.equal(result.name, 'Full House');
+  assert.deepEqual(result.score, [6, 14, 13]);
+});
+
 test('compareHands resolves kickers and ties', () => {
   assert.equal(compareHands(evaluate([C(10),C(10,'h'),C(14),C(7),C(3)]), evaluate([C(10,'d'),C(10,'c'),C(13),C(7,'h'),C(3,'d')])), 1);
   assert.equal(compareHands(evaluate([C(14),C(13),C(9),C(6),C(2)]), evaluate([C(14,'h'),C(13,'h'),C(9,'h'),C(6,'h'),C(2,'h')])), 0);
+});
+
+test('four of a kind compares by kicker', () => {
+  const aceKicker = evaluate([C(7,'s'),C(7,'h'),C(7,'d'),C(7,'c'),C(14)]);
+  const kingKicker = evaluate([C(7,'s'),C(7,'h'),C(7,'d'),C(7,'c'),C(13)]);
+  assert.deepEqual(aceKicker.score, [7, 7, 14]);
+  assert.deepEqual(kingKicker.score, [7, 7, 13]);
+  assert.equal(compareHands(aceKicker, kingKicker), 1);
+});
+
+test('seven-card hands tie when the best five cards are all on the board', () => {
+  const board = [C(14,'h'),C(13,'h'),C(12,'h'),C(11,'h'),C(10,'h')];
+  const hero = bestOfSeven([...board, C(2,'s'), C(3,'d')]);
+  const villain = bestOfSeven([...board, C(9,'c'), C(9,'d')]);
+  assert.equal(hero.name, 'Royal Flush');
+  assert.equal(villain.name, 'Royal Flush');
+  assert.equal(compareHands(hero, villain), 0);
+});
+
+test('flush comparison is lexicographic across every kicker', () => {
+  const threeKicker = evaluate([C(14,'h'),C(13,'h'),C(9,'h'),C(5,'h'),C(3,'h')]);
+  const twoKicker = evaluate([C(14,'d'),C(13,'d'),C(9,'d'),C(5,'d'),C(2,'d')]);
+  assert.deepEqual(threeKicker.score, [5, 14, 13, 9, 5, 3]);
+  assert.deepEqual(twoKicker.score, [5, 14, 13, 9, 5, 2]);
+  assert.equal(compareHands(threeKicker, twoKicker), 1);
 });
 
 test('pot odds calculates call break-even percentage', () => {

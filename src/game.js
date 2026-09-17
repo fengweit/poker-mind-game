@@ -1,6 +1,7 @@
 import { createDeck, shuffle, bestOfSeven, compareHands, calculatePotOdds, estimateEquity, preflopStrength } from './core.js';
 
 const $ = id => document.getElementById(id);
+const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
 const ui = {
   stage: $('tableStage'), table: $('table'), aiStack: $('aiStack'), playerStack: $('playerStack'), pot: $('pot'), street: $('street'),
   playerCards: $('playerCards'), aiCards: $('aiCards'), community: $('community'), playerDealer: $('playerDealer'), aiDealer: $('aiDealer'),
@@ -14,7 +15,7 @@ const ui = {
 const state = {
   stacks: { player: 1000, ai: 1000 }, bets: { player: 0, ai: 0 }, pot: 0, deck: [], player: [], ai: [], board: [],
   dealer: 'player', street: 0, currentBet: 0, actor: null, acted: new Set(), handOver: false, started: false,
-  sound: false, motion: !matchMedia('(prefers-reduced-motion: reduce)').matches,
+  sound: false, motion: !reducedMotion.matches,
   stats: { hands: 0, playerFolds: 0, playerRaises: 0, aiRaises: 0, aiCalls: 0, aiFolds: 0 },
   log: [], initialStacks: null, lastEquity: 0
 };
@@ -209,6 +210,12 @@ function updateInspector() {
   ui.hand.textContent = state.board.length >= 3 ? bestOfSeven([...state.player, ...state.board]).name.toUpperCase() : 'HIDDEN POTENTIAL';
 }
 function shake() { if (!state.motion) return; ui.table.classList.remove('shake'); void ui.table.offsetWidth; ui.table.classList.add('shake'); }
+function syncMotionControl() {
+  const button = $('motionBtn');
+  if (reducedMotion.matches) state.motion = false;
+  button.disabled = reducedMotion.matches;
+  button.textContent = `MOTION: ${state.motion ? 'ON' : 'OFF'}`;
+}
 
 async function newHand() {
   ui.result.classList.add('hidden'); ui.table.classList.remove('slow');
@@ -235,8 +242,9 @@ ui.raiseSlider.addEventListener('input', () => { ui.raiseAmount.textContent = ch
 $('startBtn').addEventListener('click', () => { $('startOverlay').classList.add('hidden'); state.started = true; newHand(); });
 $('nextHandBtn').addEventListener('click', newHand);
 $('soundBtn').addEventListener('click', () => { state.sound = !state.sound; $('soundBtn').textContent = `SOUND: ${state.sound ? 'ON' : 'OFF'}`; tone(440,.1); });
-$('motionBtn').addEventListener('click', () => { state.motion = !state.motion; $('motionBtn').textContent = `MOTION: ${state.motion ? 'ON' : 'OFF'}`; });
+$('motionBtn').addEventListener('click', () => { if (reducedMotion.matches) return; state.motion = !state.motion; syncMotionControl(); });
+reducedMotion.addEventListener('change', syncMotionControl);
 $('helpBtn').addEventListener('click', () => $('helpDialog').showModal()); $('closeHelp').addEventListener('click', () => $('helpDialog').close());
 $('inspectorToggle').addEventListener('click', () => ui.inspector?.classList.toggle('open'));
 document.addEventListener('keydown', e => { if (e.target.matches('input,button')) return; const key=e.key.toLowerCase(); if(key==='f')playerAction('fold');if(key==='c')playerAction('check');if(key==='r')playerAction('raise');if(key==='m')$('soundBtn').click(); });
-setupAtmosphere(); setControls(false);
+syncMotionControl(); setupAtmosphere(); setControls(false);
