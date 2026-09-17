@@ -29,7 +29,7 @@ Posted once with the verified public URL and our inspected gameplay capture. Do 
 
 ## Challenge-edition update
 
-A useful fulfillment candidate is built and locally browser-verified: three disclosed opponent profiles, three persistent/resettable action challenges, live profile switching, and a 13-file offline-capable allowlisted package with instructions. The public runtime update is pending commit/deploy readback. It remains **not for sale**; the page has feedback only and no transaction CTA.
+A useful fulfillment candidate is built and locally browser-verified: three disclosed opponent profiles, three persistent/resettable action challenges, live profile switching, and a 13-file offline-capable allowlisted package with instructions. The updated runtime is live: source `d2c6a74480628646b0fc7404cd32c326f46cc96b`, successful Pages run https://github.com/fengweit/poker-mind-game/actions/runs/35184732516. Manager independently matched the live challenges module byte-for-byte to source, selected Ember, dealt two cards, and folded to `Ember collects 30 virtual chips.` It remains **not for sale**; the page has feedback only and no transaction CTA.
 
 ## Commercial status
 

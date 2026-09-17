@@ -4,7 +4,7 @@
 Original cinematic poker game with a cash-revenue validation path. No guaranteed profit; real-money wagering blocked on legal, payment and security gates.
 
 ## Current phase
-P3.2/P3.3 engineering acceptance completed locally at 2026-09-17 01:10:10 EDT under PID-owned `.git/hermes-write.lock`. The useful challenge-edition candidate has three disclosed behaviorally distinct opponents, persistent/resettable action challenges, live profile switching and an exact offline-capable package. Final suite 70/70, audit 0 vulnerabilities and independent review APPROVED. No checkout, payment, duplicate X action or revenue event occurred. Updated public deployment/readback is the remaining internal step before pausing the recurring job.
+P3.2/P3.3 engineering acceptance completed locally at 2026-09-17 01:10:10 EDT under PID-owned `.git/hermes-write.lock`. The useful challenge-edition candidate has three disclosed behaviorally distinct opponents, persistent/resettable action challenges, live profile switching and an exact offline-capable package. Final suite 70/70, audit 0 vulnerabilities and independent review APPROVED. No checkout, payment, duplicate X action or revenue event occurred. Updated public deployment is verified: Pages run `35184732516` succeeded for `d2c6a74480628646b0fc7404cd32c326f46cc96b`; manager matched live module bytes, played Ember through a fold, rebuilt the offline package, and reran 70/70 tests. The recurring job is paused on external-only commercial/legal blockers.
 
 P0.4, P1.1–P1.6, P2.1–P2.4, P3.1 and P4.1–P4.5 are verified. The free game is live at https://fengweit.github.io/poker-mind-game/ and the one authorized launch post is live at https://x.com/tian2035/status/2100441981952446618. Betting transitions live in `src/betting.js`; cards/evaluation in `src/core.js`; policies remain isolated in `src/ai.js`; and the presentation-only cinematic renderer lives in `src/scene.js`. The 3D slice remains measured browser evidence, not a claim of photorealism or reference-demo equivalence.
 
@@ -16,7 +16,7 @@ The settled result overlay defect is fixed and regression-tested: it now owns a 
 - `.env` is git-ignored and permission-restricted; public example scrubbed. Tokens appeared in session context, so owner rotation remains recommended.
 - Reference sample frames inspected; original cinematic table direction documented.
 - Secret-value scan: 3 populated local values, 0 tracked hits, 0 staged hits, and 0 hits across current git history; credential names appear only in blank `.env.example`. `git check-ignore` passed for `.env` and `research/x/reference-video.mp4`; no private path is tracked.
-- Historical prototype handoff: 8 tests passed before P1.2/P1.3 expansion. Current full verification is 60/60 tests; the allowlisted public build contains exactly 11 runtime files. `npm audit --omit=dev` previously reported 0 vulnerabilities.
+- Historical prototype handoff: 8 tests passed before P1.2/P1.3 expansion. Current full verification is 70/70 tests; the allowlisted public build contains exactly 12 runtime files and the offline package 13. `npm audit --omit=dev` previously reported 0 vulnerabilities.
 - Local browser smoke: fold settled 30 virtual chips; a separate check/call line reached a five-card showdown and revealed both hands; mobile 390×844 had no horizontal overflow. Private screenshots: `artifacts/private/browser-smoke/2026-09-16-mobile-fold.png` and `artifacts/private/browser-smoke/2026-09-16-desktop-showdown.png`.
 - Independent read-only review inspected the diff, reran tests/checks, and found the code/scope/secret claims safe. Its only initial block was the stale pre-work heartbeat; that status defect was corrected before commit.
 - P1.3 RED/GREEN: missing `src/betting.js` produced `ERR_MODULE_NOT_FOUND`; focused tests reached 15/15 and full suite 33/33 after implementation and review fixes. The first independent P1.3 review found illegal all-in raises, AI raise-right failure, and short-blind stalls; the final independent re-review reran tests, exhaustive blind/all-in probes, and browser flows and passed with no blocking logic or security findings.
@@ -48,10 +48,10 @@ The settled result overlay defect is fixed and regression-tested: it now owns a 
 - P3.3 checkout inspection: no merchant/checkout key or approved delivery configuration was found in the environment/repository. `checkout_blocked`; no financial or legal action occurred; completed payments remain 0 observed/unverified.
 
 ## Next source of truth
-All independent engineering checklist items are complete. Next: commit/push, verify remote HEAD and the updated GitHub Pages challenge runtime, then pause job `f81afb3d50a0`. Remaining commercial work requires external approved merchant/delivery authorization; real-money operation remains legally/security gated.
+The scoped free launch and challenge-package engineering are verified. Job `f81afb3d50a0` is paused after updated live readback. Remaining cash-revenue work requires approved merchant/delivery authorization; real-money operation remains legally/security gated. Do not report the original cash-profit objective as achieved.
 
 ## Durable continuation
-Job `f81afb3d50a0` is enabled every 30 minutes for at most 12 runs. At least this scheduled run has completed real implementation/review work; the prior “no run completed” claim was stale. Run outputs are local, with progress committed here. Stop early after accepted launch or external-only blockers.
+Job `f81afb3d50a0` paused at 2026-09-17 01:13 EDT after 8 completed runs, with unused run budget preserved. No further edits/posts/purchases scheduled. Resume only for a concrete unblocked acceptance goal.
 
 ## Blockers / risks
 No verified checkout, approved delivery operation, gambling licenses or revenue. Owner must rotate X credentials exposed to prior session context. The procedural cinematic slice, allowlisted public deployment, original launch media, one X post and local fulfillment candidate are verified; physical-mobile validation and paid sale/fulfillment remain unverified.
