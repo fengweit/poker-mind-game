@@ -5,6 +5,11 @@
   "type": "module",
   "scripts": {
     "test": "node --test",
-    "serve": "python3 -m http.server 4173"
+    "serve": "python3 -m http.server 4173",
+    "vendor": "node scripts/vendor.mjs",
+    "postinstall": "npm run vendor"
+  },
+  "dependencies": {
+    "three": "0.186.0"
   }
 }

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 
 const css = readFileSync(new URL('../styles.css', import.meta.url), 'utf8');
 const game = readFileSync(new URL('../src/game.js', import.meta.url), 'utf8');
@@ -97,6 +97,23 @@ test('reduced-motion preference keeps the motion control off and disabled', () =
 
 test('page declares an inline icon so startup has no favicon 404', () => {
   assert.match(html, /<link\s+rel="icon"\s+href="data:image\/svg\+xml,[^"]+">/);
+});
+
+test('Three.js is self-hosted and the semantic action controls remain native buttons', () => {
+  assert.match(html, /<script type="importmap">[\s\S]*"three"\s*:\s*"\.\/vendor\/three\.module\.js"/);
+  assert.doesNotMatch(html, /https?:\/\/[^"']*(?:three|unpkg|jsdelivr)/i);
+  assert.equal(existsSync(new URL('../vendor/three.module.js', import.meta.url)), true);
+  assert.equal(existsSync(new URL('../vendor/three.core.js', import.meta.url)), true);
+  assert.equal(existsSync(new URL('../vendor/THREE-LICENSE.txt', import.meta.url)), true);
+  for (const action of ['fold', 'check', 'raise']) {
+    assert.match(html, new RegExp(`<button[^>]+data-action="${action}"`));
+  }
+});
+
+test('cinematic canvas remains decorative and falls back to the CSS atmosphere', () => {
+  assert.match(game, /createCinematicScene\(ui\.table/);
+  assert.match(css, /\.cinematic-canvas\s*\{[^{}]*pointer-events:\s*none/);
+  assert.match(css, /\[data-renderer="fallback"\]/);
 });
 
 test('reset control restores a fresh started match and invalidates pending hand work', () => {

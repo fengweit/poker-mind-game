@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="700" viewBox="0 0 1200 700" role="img" aria-labelledby="title desc">
+  <title id="title">THE TELL original cinematic room target</title>
+  <desc id="desc">A rain-dark room with a warm hanging lamp over a deep green heads-up poker table and a cool window behind the opponent.</desc>
+  <defs>
+    <radialGradient id="lamp" cx="43%" cy="24%" r="49%"><stop offset="0" stop-color="#efb15d" stop-opacity=".58"/><stop offset=".58" stop-color="#9d5c27" stop-opacity=".12"/><stop offset="1" stop-color="#050808" stop-opacity="0"/></radialGradient>
+    <linearGradient id="room" x2="0" y2="1"><stop stop-color="#071012"/><stop offset="1" stop-color="#020404"/></linearGradient>
+    <radialGradient id="felt"><stop stop-color="#185548"/><stop offset=".72" stop-color="#0b3029"/><stop offset="1" stop-color="#061d19"/></radialGradient>
+    <linearGradient id="glass" x2="0" y2="1"><stop stop-color="#174753"/><stop offset="1" stop-color="#07191e"/></linearGradient>
+    <filter id="glow"><feGaussianBlur stdDeviation="14"/></filter>
+  </defs>
+  <rect width="1200" height="700" fill="url(#room)"/>
+  <rect x="785" y="72" width="292" height="270" rx="4" fill="url(#glass)" stroke="#315760" stroke-width="5"/>
+  <path d="M858 72v270M930 72v270M1002 72v270M785 160h292M785 250h292" stroke="#142a2e" stroke-width="5"/>
+  <g stroke="#8bc5d0" stroke-width="2" opacity=".42"><path d="M812 90l-24 130M850 115l-28 154M906 84l-31 177M964 110l-28 158M1030 86l-31 180M1070 125l-23 128"/></g>
+  <ellipse cx="500" cy="185" rx="390" ry="300" fill="url(#lamp)" filter="url(#glow)"/>
+  <path d="M430 0v84" stroke="#221a12" stroke-width="10"/><path d="M350 146L390 75h80l42 71z" fill="#24160f" stroke="#7c4b2b" stroke-width="4"/><circle cx="431" cy="138" r="18" fill="#ffd191"/>
+  <ellipse cx="600" cy="528" rx="500" ry="155" fill="#120a07" stroke="#75502c" stroke-width="28"/>
+  <ellipse cx="600" cy="510" rx="462" ry="126" fill="url(#felt)" stroke="#2f1a11" stroke-width="10"/>
+  <ellipse cx="600" cy="515" rx="335" ry="70" fill="#020404" opacity=".18"/>
+  <g fill="#120d0c" stroke="#9b3d38" stroke-width="3"><rect x="548" y="270" width="48" height="68" rx="6"/><rect x="606" y="270" width="48" height="68" rx="6"/></g>
+  <g transform="translate(520 430)"><g fill="#a83e35"><rect width="34" height="12" rx="6"/><rect y="-12" width="34" height="12" rx="6"/><rect y="-24" width="34" height="12" rx="6"/></g><g fill="#69c8c5" transform="translate(55)"><rect width="34" height="12" rx="6"/><rect y="-12" width="34" height="12" rx="6"/><rect y="-24" width="34" height="12" rx="6"/><rect y="-36" width="34" height="12" rx="6"/></g><g fill="#d69b48" transform="translate(110)"><rect width="34" height="12" rx="6"/><rect y="-12" width="34" height="12" rx="6"/><rect y="-24" width="34" height="12" rx="6"/></g></g>
+  <g transform="translate(500 572)"><rect width="72" height="96" rx="8" fill="#ece5d6"/><rect x="86" width="72" height="96" rx="8" fill="#ece5d6"/><text x="12" y="30" fill="#111" font-family="Georgia" font-size="25">A♠</text><text x="98" y="30" fill="#9d302d" font-family="Georgia" font-size="25">Q♥</text></g>
+  <text x="52" y="64" fill="#d9c08e" font-family="Georgia" font-size="25" letter-spacing="8">THE TELL / VISUAL TARGET</text>
+  <text x="52" y="98" fill="#7f938f" font-family="monospace" font-size="13" letter-spacing="3">WARM DECISION SPACE · COOL UNCERTAINTY · PHYSICAL DEPTH</text>
+</svg>

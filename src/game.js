@@ -1,5 +1,6 @@
 import { createDeck, shuffle, bestOfSeven, compareHands, calculatePotOdds, estimateEquity, preflopStrength, createSeededRandom } from './core.js';
 import { createPolicyObservation, createHeuristicPolicy } from './ai.js';
+import { createCinematicScene } from './scene.js';
 import {
   actorForStreet,
   applyBetAction,
@@ -41,6 +42,16 @@ const deckRng = createSeededRandom(randomSeed());
 const aiDecisionRng = createSeededRandom(randomSeed());
 const aiAdvisorRng = createSeededRandom(randomSeed());
 const browserAiPolicy = createHeuristicPolicy({ advisorSamples: 180, advisorRng: aiAdvisorRng });
+let sceneController = null;
+const pendingSceneEvents = [];
+function emitScene(name, detail = {}) {
+  if (sceneController) sceneController.emit(name, detail);
+  else pendingSceneEvents.push([name, detail]);
+}
+function resetScene() {
+  pendingSceneEvents.length = 0;
+  sceneController?.reset();
+}
 
 function cardEl(card, hidden = false, delay = 0) {
   const div = document.createElement('div');
@@ -82,7 +93,9 @@ function syncBetting(next, committed = 0) {
 function takeBetAction(who, action) {
   const before = state.stacks[who];
   const next = applyBetAction(bettingSnapshot(), who, action);
-  syncBetting(next, before - next.stacks[who]);
+  const committed = before - next.stacks[who];
+  syncBetting(next, committed);
+  if (committed > 0) emitScene('committed', { actor: who, amount: committed, pot: state.pot });
   return next;
 }
 function toCall(who) { return bettingToCall(bettingSnapshot(), who); }
@@ -193,6 +206,7 @@ async function advanceStreet(runoutOnly = false, epoch = state.handEpoch) {
     state.board.push(state.deck.pop()); renderCards(ui.community, state.board); tone(320 + i * 40, .1); await wait(180);
   }
   if (epoch !== state.handEpoch) return;
+  emitScene('boardReveal', { street: state.street, cards: count, boardCount: state.board.length });
   ui.street.textContent = streetNames[state.street]; say(streetInsight()); updateInspector();
   if (runoutOnly) return;
   state.actor = actorForStreet(state.handDealer, state.street);
@@ -206,6 +220,7 @@ async function runout(epoch = state.handEpoch) {
 
 function showdown() {
   state.handOver = true; setControls(false); ui.table.classList.add('slow'); renderCards(ui.aiCards, state.ai, false); tone(85,.5,'sawtooth',.025);
+  emitScene('showdown', { boardCount: state.board.length });
   const p = bestOfSeven([...state.player, ...state.board]), a = bestOfSeven([...state.ai, ...state.board]), result = compareHands(p, a);
   if (result > 0) award('player', `${p.name.toUpperCase()} WINS`, { p, a });
   else if (result < 0) award('ai', `VESPER'S ${a.name.toUpperCase()} WINS`, { p, a });
@@ -270,18 +285,22 @@ function syncMotionControl() {
   if (reducedMotion.matches) state.motion = false;
   button.disabled = reducedMotion.matches;
   button.textContent = `MOTION: ${state.motion ? 'ON' : 'OFF'}`;
+  sceneController?.setMotion(state.motion);
 }
 
 async function newHand() {
+  resetScene();
   const epoch = ++state.handEpoch;
   ui.result.classList.add('hidden'); ui.table.classList.remove('slow');
   if (state.stacks.player < 20 || state.stacks.ai < 20) state.stacks = { player:1000, ai:1000 };
   state.stats.hands++; state.handDealer = state.dealer; state.deck = shuffle(createDeck(), deckRng); state.board = []; state.street = 0;
   state.player = [state.deck.pop(), state.deck.pop()]; state.ai = [state.deck.pop(), state.deck.pop()]; state.log = [];
   state.initialStacks = {...state.stacks}; ui.community.replaceChildren(); ui.street.textContent = 'PRE-FLOP'; renderCards(ui.playerCards, state.player); renderCards(ui.aiCards, state.ai, true);
+  emitScene('deal', { playerCount: state.player.length, opponentCount: state.ai.length, dealer: state.handDealer });
   ui.playerDealer.classList.toggle('visible', state.handDealer === 'player'); ui.aiDealer.classList.toggle('visible', state.handDealer === 'ai');
   const opened = postBlinds(createBettingState({ stacks: state.stacks, dealer: state.handDealer }));
   syncBetting(opened, 30); state.log.push(`${state.handDealer === 'player' ? 'You post' : 'Vesper posts'} small blind`);
+  emitScene('committed', { actor: 'blinds', amount: 30, pot: state.pot });
   say('The cards are random. Your decisions are not.'); updateInspector();
   if (state.actor === 'ai') await actAI(epoch); else setControls(true);
   if (epoch === state.handEpoch) state.dealer = other(state.handDealer);
@@ -289,6 +308,7 @@ async function newHand() {
 
 function resetMatch() {
   if (!state.started) return;
+  resetScene();
   state.handEpoch++;
   state.stacks = { player: 1000, ai: 1000 };
   state.bets = { player: 0, ai: 0 };
@@ -319,3 +339,9 @@ $('helpBtn').addEventListener('click', () => $('helpDialog').showModal()); $('cl
 $('inspectorToggle').addEventListener('click', () => ui.inspector?.classList.toggle('open'));
 document.addEventListener('keydown', e => { if (e.target.matches('input,button')) return; const key=e.key.toLowerCase(); if(key==='f')playerAction('fold');if(key==='c')playerAction('check');if(key==='r')playerAction('raise');if(key==='m')$('soundBtn').click(); });
 syncMotionControl(); setupAtmosphere(); setControls(false);
+createCinematicScene(ui.table, { motion: state.motion }).then(controller => {
+  sceneController = controller;
+  if (!sceneController) return;
+  sceneController.setMotion(state.motion);
+  for (const [name, detail] of pendingSceneEvents.splice(0)) sceneController.emit(name, detail);
+});
