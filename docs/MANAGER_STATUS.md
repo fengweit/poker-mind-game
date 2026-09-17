@@ -1,5 +1,7 @@
 # THE TELL — Manager status
 
+> **USER REJECTION — supersedes earlier visual/product approvals:** The poker build is the wrong genre and does not meet the Anshu video quality bar. Historical test/deploy evidence below remains valid only for the old prototype. Do not report the requested product complete or resume its poker checklist. Read `docs/visual/USER_QUALITY_REJECTION.md`, `docs/SKYBREAK_PIVOT.md`, and `docs/DREAM_LOOP_STATUS.md` for the corrected flight-game direction and actual target-image blocker.
+
 ## Mission
 Original cinematic poker game with a cash-revenue validation path. No guaranteed profit; real-money wagering blocked on legal, payment and security gates.
 
