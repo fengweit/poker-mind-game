@@ -1,4 +1,5 @@
-import { createDeck, shuffle, bestOfSeven, compareHands, calculatePotOdds, estimateEquity, preflopStrength } from './core.js';
+import { createDeck, shuffle, bestOfSeven, compareHands, calculatePotOdds, estimateEquity, preflopStrength, createSeededRandom } from './core.js';
+import { createPolicyObservation, createHeuristicPolicy } from './ai.js';
 import {
   actorForStreet,
   applyBetAction,
@@ -35,6 +36,11 @@ const streetNames = ['PRE-FLOP', 'FLOP', 'TURN', 'RIVER'];
 const rankText = { 14:'A',13:'K',12:'Q',11:'J',10:'10',9:'9',8:'8',7:'7',6:'6',5:'5',4:'4',3:'3',2:'2' };
 const suitText = { s:'♠',h:'♥',d:'♦',c:'♣' };
 const wait = ms => new Promise(resolve => setTimeout(resolve, state.motion ? ms : 10));
+const randomSeed = () => Math.floor(Math.random() * 4294967296);
+const deckRng = createSeededRandom(randomSeed());
+const aiDecisionRng = createSeededRandom(randomSeed());
+const aiAdvisorRng = createSeededRandom(randomSeed());
+const browserAiPolicy = createHeuristicPolicy({ advisorSamples: 180, advisorRng: aiAdvisorRng });
 
 function cardEl(card, hidden = false, delay = 0) {
   const div = document.createElement('div');
@@ -101,11 +107,6 @@ function setControls(enabled) {
   ui.toCall.textContent = call ? `${chips(call)} to call · ${chips(state.pot)} in pot` : 'Check or apply pressure';
 }
 
-function strength(who) {
-  const hole = state[who];
-  if (state.board.length < 3) return preflopStrength(hole);
-  return estimateEquity(hole, state.board, [], 180).equity;
-}
 function aiProfile() {
   const s = state.stats;
   const observed = Math.max(1, s.hands);
@@ -114,17 +115,29 @@ function aiProfile() {
   return { playerAggression, foldRate, exploitBluff: foldRate > .38, trap: playerAggression > .65 };
 }
 function aiDecision() {
-  const call = toCall('ai'), potOdds = calculatePotOdds(call, state.pot) / 100, handStrength = strength('ai');
-  const profile = aiProfile();
-  const noise = Math.random() * .16 - .08;
-  const adjusted = handStrength + noise;
-  if (call > 0 && adjusted < potOdds - .08 && Math.random() > .12) return { type:'fold' };
-  const aggression = adjusted + (profile.exploitBluff ? .12 : 0) - (profile.trap ? .07 : 0);
-  if (canRaise(bettingSnapshot(), 'ai') && state.stacks.ai > call + 20 && (aggression > .67 || (profile.exploitBluff && Math.random() < .25))) {
-    const target = Math.min(state.bets.ai + state.stacks.ai, Math.max(state.currentBet + state.lastFullRaise, state.currentBet + Math.max(20, Math.round(state.pot * .55 / 10) * 10)));
-    return { type:'raise', target };
-  }
-  return { type: call ? 'call' : 'check' };
+  const snapshot = bettingSnapshot();
+  const maximum = state.bets.ai + state.stacks.ai;
+  const raiseAllowed = canRaise(bettingSnapshot(), 'ai');
+  const observation = createPolicyObservation(
+    state.ai,
+    state.board,
+    {
+      street: state.street,
+      ownStack: state.stacks.ai,
+      opponentStack: state.stacks.player,
+      ownBet: state.bets.ai,
+      opponentBet: state.bets.player,
+      pot: state.pot,
+      toCall: bettingToCall(snapshot, 'ai'),
+      currentBet: state.currentBet,
+      lastFullRaise: state.lastFullRaise,
+      canRaise: raiseAllowed,
+      minRaiseTarget: raiseAllowed ? Math.min(maximum, state.currentBet + state.lastFullRaise) : maximum,
+      maxRaiseTarget: maximum
+    },
+    aiProfile()
+  );
+  return browserAiPolicy(observation, aiDecisionRng);
 }
 
 async function actAI() {
@@ -249,7 +262,7 @@ function syncMotionControl() {
 async function newHand() {
   ui.result.classList.add('hidden'); ui.table.classList.remove('slow');
   if (state.stacks.player < 20 || state.stacks.ai < 20) state.stacks = { player:1000, ai:1000 };
-  state.stats.hands++; state.handDealer = state.dealer; state.deck = shuffle(createDeck()); state.board = []; state.street = 0;
+  state.stats.hands++; state.handDealer = state.dealer; state.deck = shuffle(createDeck(), deckRng); state.board = []; state.street = 0;
   state.player = [state.deck.pop(), state.deck.pop()]; state.ai = [state.deck.pop(), state.deck.pop()]; state.log = [];
   state.initialStacks = {...state.stacks}; ui.community.replaceChildren(); ui.street.textContent = 'PRE-FLOP'; renderCards(ui.playerCards, state.player); renderCards(ui.aiCards, state.ai, true);
   ui.playerDealer.classList.toggle('visible', state.handDealer === 'player'); ui.aiDealer.classList.toggle('visible', state.handDealer === 'ai');
