@@ -118,7 +118,7 @@ function createThreeAdapter(THREE, canvas, container) {
   renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.05;
+  renderer.toneMappingExposure = 1.32;
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFShadowMap;
 
@@ -148,9 +148,9 @@ function createThreeAdapter(THREE, canvas, container) {
   const glass = new THREE.Mesh(new THREE.PlaneGeometry(7.5, 4.8), new THREE.MeshBasicMaterial({ color: 0x246a7d, transparent: true, opacity: .24 }));
   glass.position.set(4.1, 4, -4.45); scene.add(glass);
 
-  const felt = new THREE.Mesh(new THREE.CylinderGeometry(5.4, 5.4, .45, 72), standard(0x0e4a3d, .92));
+  const felt = new THREE.Mesh(new THREE.CylinderGeometry(5.4, 5.4, .45, 72), standard(0x176555, .88));
   felt.scale.z = .62; felt.position.y = -.1; felt.receiveShadow = true; scene.add(felt);
-  const rail = new THREE.Mesh(new THREE.TorusGeometry(5.42, .28, 16, 80), standard(0x2b1710, .52, .05));
+  const rail = new THREE.Mesh(new THREE.TorusGeometry(5.42, .28, 16, 80), standard(0x70451f, .46, .34));
   rail.rotation.x = Math.PI / 2; rail.scale.y = .62; rail.position.y = .16; rail.castShadow = true; scene.add(rail);
 
   const chipMaterial = [standard(0xb33b34, .42, .1), standard(0x61cbd0, .42, .1), standard(0xd39a47, .42, .1)];
@@ -161,11 +161,11 @@ function createThreeAdapter(THREE, canvas, container) {
     chip.castShadow = true; scene.add(chip); chips.push(chip);
   }
 
-  const lamp = new THREE.PointLight(0xf0aa55, 68, 22, 1.8);
+  const lamp = new THREE.PointLight(0xf0aa55, 92, 24, 1.7);
   lamp.position.set(-3.1, 4.9, .3); lamp.castShadow = true; scene.add(lamp);
   const cool = new THREE.DirectionalLight(0x66bbdd, 2.3);
   cool.position.set(6, 5, -5); scene.add(cool);
-  scene.add(new THREE.HemisphereLight(0x31566b, 0x130b08, .8));
+  scene.add(new THREE.HemisphereLight(0x416d82, 0x1b0f09, 1.15));
   const shade = new THREE.Mesh(new THREE.ConeGeometry(1.45, 1.4, 32, 1, true), new THREE.MeshStandardMaterial({ color: 0x241810, emissive: 0x5b260b, emissiveIntensity: .7, roughness: .5, metalness: .3 }));
   shade.position.copy(lamp.position); shade.position.y += .35; scene.add(shade);
   const bulb = new THREE.Mesh(new THREE.SphereGeometry(.16, 20, 12), new THREE.MeshBasicMaterial({ color: 0xffcf87 }));
@@ -207,7 +207,7 @@ function createThreeAdapter(THREE, canvas, container) {
     const t = (now - started) / 1000;
     if (moving) {
       rain.position.y = -(t * 1.4 % 4.8);
-      lamp.intensity = 68 + Math.sin(t * 2.1) * 2;
+      lamp.intensity = 92 + Math.sin(t * 2.1) * 2;
       camera.position.x = Math.sin(t * .16) * .12;
       camera.lookAt(0, .3, 0);
     }
@@ -225,7 +225,7 @@ function createThreeAdapter(THREE, canvas, container) {
     if (!moving || duration <= 0) { update(1); return Promise.resolve(); }
     return new Promise(resolve => pulses.push({ start: performance.now(), duration, update, resolve }));
   };
-  const baseLamp = 68;
+  const baseLamp = 92;
   const resetVisuals = () => {
     lamp.color.setHex(0xf0aa55); lamp.intensity = baseLamp;
     felt.scale.set(1, 1, .62); rail.scale.set(1, .62, 1);

@@ -5,6 +5,7 @@ import { existsSync, readFileSync } from 'node:fs';
 const css = readFileSync(new URL('../styles.css', import.meta.url), 'utf8');
 const game = readFileSync(new URL('../src/game.js', import.meta.url), 'utf8');
 const html = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
+const scene = readFileSync(new URL('../src/scene.js', import.meta.url), 'utf8');
 
 function declarations(selector, source = css) {
   const escaped = selector.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -99,6 +100,14 @@ test('page declares an inline icon so startup has no favicon 404', () => {
   assert.match(html, /<link\s+rel="icon"\s+href="data:image\/svg\+xml,[^"]+">/);
 });
 
+test('edition interest check is explicit, non-transactional, and opens repository feedback safely', () => {
+  assert.match(html, /INTEREST CHECK · NOT FOR SALE/);
+  assert.match(html, /This edition is not built or available to buy/);
+  assert.match(html, /href="https:\/\/github\.com\/fengweit\/poker-mind-game\/issues\/new\?[^\"]+"/);
+  assert.match(html, /target="_blank" rel="noopener noreferrer"/);
+  assert.doesNotMatch(html, /(?:buy now|checkout|purchase now)/i);
+});
+
 test('Three.js is self-hosted and the semantic action controls remain native buttons', () => {
   assert.match(html, /<script type="importmap">[\s\S]*"three"\s*:\s*"\.\/vendor\/three\.module\.js"/);
   assert.doesNotMatch(html, /https?:\/\/[^"']*(?:three|unpkg|jsdelivr)/i);
@@ -114,6 +123,21 @@ test('cinematic canvas remains decorative and falls back to the CSS atmosphere',
   assert.match(game, /createCinematicScene\(ui\.table/);
   assert.match(css, /\.cinematic-canvas\s*\{[^{}]*pointer-events:\s*none/);
   assert.match(css, /\[data-renderer="fallback"\]/);
+});
+
+test('collapsed desktop inspector is deliberately styled rather than a browser-default button', () => {
+  const button = declarations('.mobile-inspector');
+  assert.match(button, /border:\s*1px solid var\(--amber\)/);
+  assert.match(button, /background:\s*#[0-9a-f]{6}/i);
+  assert.match(button, /color:\s*var\(--paper\)/);
+  assert.match(button, /cursor:\s*pointer/);
+});
+
+test('desktop scene keeps the physical table, rail, lamp and status copy visibly lit', () => {
+  assert.match(scene, /toneMappingExposure\s*=\s*1\.[2-9]/);
+  assert.match(scene, /const rail[^;]+standard\(0x[4-9a-f][0-9a-f]{5}/i);
+  assert.match(scene, /const lamp = new THREE\.PointLight\([^,]+,\s*(?:[89]\d|\d{3,})/);
+  assert.match(declarations('.action-whisper'), /color:\s*rgba\([^)]*,\s*\.(?:7|8|9)\d*\)/);
 });
 
 test('reset control restores a fresh started match and invalidates pending hand work', () => {

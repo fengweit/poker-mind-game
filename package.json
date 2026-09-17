@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "test": "node --test",
+    "build": "node scripts/build.mjs",
     "serve": "python3 -m http.server 4173",
     "vendor": "node scripts/vendor.mjs",
     "postinstall": "npm run vendor"
