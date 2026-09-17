@@ -1,13 +1,13 @@
 # Agent heartbeat
 
-Phase: P1.4 + P1.5 simulation and hidden-information isolation — verified and pushed.
-Run started: 2026-09-16 22:38:34 EDT.
-Run verification completed: 2026-09-16 23:00:55 EDT; implementation push verified 2026-09-16 23:02:13 EDT.
-Writer lock: held through final status push at `.git/hermes-write.lock`; owner PID 93920 / `cron-f81afb3d50a0-P1.4-P1.5`.
-Starting truth: clean tree; local and remote HEAD `6442a3d23c78cbba29f29bc7b4b4bec018697c8b`; 33/33 tests.
-Delivered: deterministic simulator over the real deck/evaluator/betting engine, paired heuristic/random seed comparison, narrow AI observation contract, browser integration, and separate deck/policy/advisor RNG streams.
-Required run: 10,000/10,000 completed and terminal; 10,000 chip-conserving, finite-integer and unique-deck; 0 invalid; 3,721 showdowns + 6,279 folds. Private artifact is ignored, 4,420 bytes, SHA-256 `89978948d33152918226748a5d5fcb2d253ac2705d669c8c65aa846c3fdb916f`.
-Comparison: heuristic +62.362 versus random -62.362 virtual chips/hand over 5,000 paired seed sets; paired difference 124.724, SE 5.8086, approximate 95% interval [113.3392, 136.1088]. This is simulator-only evidence, not a live-profit claim.
-TDD/review: genuine missing-module RED; 43/43 final tests. Spec review passed. Quality review rejected one-pair false uncertainty; regression RED then repair; final quality/security re-review approved.
-Safety: no tracked private artifact, deploy, post, checkout, financial action, or revenue claim.
-Next: commit explicit files, push and verify remote HEAD; then P1.6 full browser acceptance.
+Phase: P1.6 full browser acceptance — verified; pending commit/push.
+Run started: 2026-09-16 23:04:08 EDT.
+Writer lock: `.git/hermes-write.lock`; owner PID 93920 / `cron-f81afb3d50a0-P1.6`.
+Starting truth: clean tree; local and remote HEAD `fb3df854d048c4bab0e20631360210a0dc866e32`; 43/43 tests from the prior verified run.
+Completed: real loopback fold, next hand, keyboard raise, max-slider all-in showdown, reset during an in-flight AI turn, and 390×844 control/layout checks. Reset now cancels stale hand work and is disabled before startup. Fresh Playwright console: 0 errors/0 warnings after repairing the observed favicon 404.
+Performance: Chromium mobile emulation, 115 rAF intervals; p50 16.7ms, p95 16.7ms, max 16.8ms. This is emulation only.
+TDD/review: genuine missing-reset RED and favicon-404 RED; full suite 45/45. Spec review passed after its 44/45 stale-contract blocker was repaired. Quality review caught pre-start reset activation; the fix was browser-proven and final review approved with no findings.
+Private evidence: `artifacts/private/browser-smoke/2026-09-16-p16-next-hand.png`, `2026-09-16-p16-all-in-showdown.png`, and `2026-09-16-p16-mobile.png` (ignored, not for public build).
+Safety: no deploy, public post, checkout, financial action, private reference publication, or revenue claim.
+Run verification completed: 2026-09-16 23:20:02 EDT.
+Next: commit explicit P1.6 files, push, verify remote HEAD/clean tree, then begin P2.1 visual target and critique rubric on the next run.

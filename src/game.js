@@ -24,13 +24,13 @@ const ui = {
   resultTitle: $('resultTitle'), resultSummary: $('resultSummary'), reviewGrid: $('reviewGrid'), mindNote: $('mindNote'), inspector: $('inspector')
 };
 
+const createEmptyStats = () => ({ hands: 0, playerFolds: 0, playerRaises: 0, aiRaises: 0, aiCalls: 0, aiFolds: 0 });
 const state = {
   stacks: { player: 1000, ai: 1000 }, bets: { player: 0, ai: 0 }, pot: 0, deck: [], player: [], ai: [], board: [],
   dealer: 'player', handDealer: 'player', street: 0, currentBet: 0, actor: null, acted: new Set(), raiseLocked: [],
   lastFullRaise: 20, roundComplete: false, handOver: false, paid: false, winner: null, started: false,
   sound: false, motion: !reducedMotion.matches,
-  stats: { hands: 0, playerFolds: 0, playerRaises: 0, aiRaises: 0, aiCalls: 0, aiFolds: 0 },
-  log: [], initialStacks: null, lastEquity: 0
+  stats: createEmptyStats(), log: [], initialStacks: null, lastEquity: 0, handEpoch: 0
 };
 const streetNames = ['PRE-FLOP', 'FLOP', 'TURN', 'RIVER'];
 const rankText = { 14:'A',13:'K',12:'Q',11:'J',10:'10',9:'9',8:'8',7:'7',6:'6',5:'5',4:'4',3:'3',2:'2' };
@@ -140,9 +140,10 @@ function aiDecision() {
   return browserAiPolicy(observation, aiDecisionRng);
 }
 
-async function actAI() {
+async function actAI(epoch = state.handEpoch) {
   if (state.handOver || state.actor !== 'ai') return;
   setControls(false); ui.aiRead.textContent = 'READING THE LINE'; await wait(550 + Math.random() * 450);
+  if (epoch !== state.handEpoch || state.handOver || state.actor !== 'ai') return;
   const move = aiDecision();
   if (move.type === 'fold') { takeBetAction('ai', { type: 'fold' }); state.stats.aiFolds++; state.log.push('Vesper folded'); say('Vesper releases the hand. Pressure changed the outcome.'); award('player', 'VESPER FOLDS'); return; }
   if (move.type === 'raise') {
@@ -153,11 +154,12 @@ async function actAI() {
     state.log.push(call ? `Vesper called ${call}` : 'Vesper checked'); say(call ? 'Vesper calls. Their range narrows.' : 'Vesper checks. Information, or misdirection?');
   }
   ui.aiRead.textContent = profileLabel();
-  await continueRound('ai');
+  await continueRound('ai', epoch);
 }
 
 async function playerAction(type) {
   if (state.handOver || state.actor !== 'player') return;
+  const epoch = state.handEpoch;
   setControls(false);
   if (type === 'fold') { takeBetAction('player', { type: 'fold' }); state.stats.playerFolds++; state.log.push('You folded'); award('ai', 'YOU FOLD'); return; }
   if (type === 'check') {
@@ -167,30 +169,40 @@ async function playerAction(type) {
     const target = Number(ui.raiseSlider.value); takeBetAction('player', { type: 'raise', target });
     state.stats.playerRaises++; state.log.push(`You raised to ${state.currentBet}`); say('You apply pressure. Vesper must reveal a preference.'); shake();
   }
-  await continueRound('player');
+  await continueRound('player', epoch);
 }
 
-async function continueRound(lastActor) {
+async function continueRound(lastActor, epoch = state.handEpoch) {
+  if (epoch !== state.handEpoch) return;
   updateInspector();
   if (state.handOver) return;
-  if ((state.stacks.player === 0 || state.stacks.ai === 0) && state.roundComplete) { await runout(); return; }
-  if (state.roundComplete) { await advanceStreet(); return; }
+  if ((state.stacks.player === 0 || state.stacks.ai === 0) && state.roundComplete) { await runout(epoch); return; }
+  if (state.roundComplete) { await advanceStreet(false, epoch); return; }
   state.actor = other(lastActor);
-  if (state.actor === 'ai') await actAI(); else setControls(true);
+  if (state.actor === 'ai') await actAI(epoch); else setControls(true);
 }
 
-async function advanceStreet(runoutOnly = false) {
+async function advanceStreet(runoutOnly = false, epoch = state.handEpoch) {
+  if (epoch !== state.handEpoch) return;
   if (state.street === 3) { showdown(); return; }
   state.street++; state.bets = { player:0, ai:0 }; state.currentBet = 0; state.acted = new Set(); state.raiseLocked = [];
   state.lastFullRaise = 20; state.roundComplete = false;
   const count = state.street === 1 ? 3 : 1;
-  for (let i = 0; i < count; i++) { state.board.push(state.deck.pop()); renderCards(ui.community, state.board); tone(320 + i * 40, .1); await wait(180); }
+  for (let i = 0; i < count; i++) {
+    if (epoch !== state.handEpoch) return;
+    state.board.push(state.deck.pop()); renderCards(ui.community, state.board); tone(320 + i * 40, .1); await wait(180);
+  }
+  if (epoch !== state.handEpoch) return;
   ui.street.textContent = streetNames[state.street]; say(streetInsight()); updateInspector();
   if (runoutOnly) return;
   state.actor = actorForStreet(state.handDealer, state.street);
-  if (state.actor === 'ai') await actAI(); else setControls(true);
+  if (state.actor === 'ai') await actAI(epoch); else setControls(true);
 }
-async function runout() { setControls(false); while (state.street < 3) await advanceStreet(true); showdown(); }
+async function runout(epoch = state.handEpoch) {
+  setControls(false);
+  while (state.street < 3 && epoch === state.handEpoch) await advanceStreet(true, epoch);
+  if (epoch === state.handEpoch) showdown();
+}
 
 function showdown() {
   state.handOver = true; setControls(false); ui.table.classList.add('slow'); renderCards(ui.aiCards, state.ai, false); tone(85,.5,'sawtooth',.025);
@@ -212,7 +224,8 @@ function award(winner, title, hands = null) {
   const note = winner === 'player'
     ? 'A win delivers intermittent reward. Do not confuse a favorable outcome with a perfect decision—review the price you paid.'
     : 'Loss aversion makes this pot feel larger after it leaves your stack. The next hand is independent; do not chase virtual losses.';
-  setTimeout(() => showReview(title, summary, p, a, note), state.motion ? 650 : 10);
+  const epoch = state.handEpoch;
+  setTimeout(() => { if (epoch === state.handEpoch) showReview(title, summary, p, a, note); }, state.motion ? 650 : 10);
 }
 function showReview(title, summary, p, a, note) {
   ui.resultTitle.textContent = title; ui.resultSummary.textContent = summary;
@@ -260,6 +273,7 @@ function syncMotionControl() {
 }
 
 async function newHand() {
+  const epoch = ++state.handEpoch;
   ui.result.classList.add('hidden'); ui.table.classList.remove('slow');
   if (state.stacks.player < 20 || state.stacks.ai < 20) state.stacks = { player:1000, ai:1000 };
   state.stats.hands++; state.handDealer = state.dealer; state.deck = shuffle(createDeck(), deckRng); state.board = []; state.street = 0;
@@ -269,8 +283,21 @@ async function newHand() {
   const opened = postBlinds(createBettingState({ stacks: state.stacks, dealer: state.handDealer }));
   syncBetting(opened, 30); state.log.push(`${state.handDealer === 'player' ? 'You post' : 'Vesper posts'} small blind`);
   say('The cards are random. Your decisions are not.'); updateInspector();
-  if (state.actor === 'ai') await actAI(); else setControls(true);
-  state.dealer = other(state.dealer);
+  if (state.actor === 'ai') await actAI(epoch); else setControls(true);
+  if (epoch === state.handEpoch) state.dealer = other(state.handDealer);
+}
+
+function resetMatch() {
+  if (!state.started) return;
+  state.handEpoch++;
+  state.stacks = { player: 1000, ai: 1000 };
+  state.bets = { player: 0, ai: 0 };
+  state.pot = 0; state.dealer = 'player'; state.handDealer = 'player'; state.street = 0;
+  state.currentBet = 0; state.actor = null; state.acted = new Set(); state.raiseLocked = [];
+  state.lastFullRaise = 20; state.roundComplete = false; state.handOver = false; state.paid = false; state.winner = null;
+  state.stats = createEmptyStats(); state.log = []; state.initialStacks = null; state.lastEquity = 0;
+  ui.aiRead.textContent = 'CALIBRATING';
+  newHand();
 }
 
 function setupAtmosphere() {
@@ -282,8 +309,9 @@ function setupAtmosphere() {
 
 document.querySelectorAll('[data-action]').forEach(btn => btn.addEventListener('click', () => playerAction(btn.dataset.action)));
 ui.raiseSlider.addEventListener('input', () => { ui.raiseAmount.textContent = chips(ui.raiseSlider.value); ui.raiseSub.textContent = `Make it ${chips(ui.raiseSlider.value)}`; });
-$('startBtn').addEventListener('click', () => { $('startOverlay').classList.add('hidden'); state.started = true; newHand(); });
+$('startBtn').addEventListener('click', () => { $('startOverlay').classList.add('hidden'); state.started = true; $('resetBtn').disabled = false; newHand(); });
 $('nextHandBtn').addEventListener('click', newHand);
+$('resetBtn').addEventListener('click', resetMatch);
 $('soundBtn').addEventListener('click', () => { state.sound = !state.sound; $('soundBtn').textContent = `SOUND: ${state.sound ? 'ON' : 'OFF'}`; tone(440,.1); });
 $('motionBtn').addEventListener('click', () => { if (reducedMotion.matches) return; state.motion = !state.motion; syncMotionControl(); });
 reducedMotion.addEventListener('change', syncMotionControl);

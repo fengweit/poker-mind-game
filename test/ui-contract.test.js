@@ -4,6 +4,7 @@ import { readFileSync } from 'node:fs';
 
 const css = readFileSync(new URL('../styles.css', import.meta.url), 'utf8');
 const game = readFileSync(new URL('../src/game.js', import.meta.url), 'utf8');
+const html = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
 
 function declarations(selector, source = css) {
   const escaped = selector.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -92,4 +93,19 @@ test('reduced-motion preference keeps the motion control off and disabled', () =
   const clickHandler = game.match(/motionBtn'\)\.addEventListener\('click',\s*\(\)\s*=>\s*\{([^}]+)\}/)?.[1];
   assert.ok(clickHandler, 'missing motion click handler');
   assert.match(clickHandler, new RegExp(`if\\s*\\(${mediaName}\\.matches\\)\\s*return`));
+});
+
+test('page declares an inline icon so startup has no favicon 404', () => {
+  assert.match(html, /<link\s+rel="icon"\s+href="data:image\/svg\+xml,[^"]+">/);
+});
+
+test('reset control restores a fresh started match and invalidates pending hand work', () => {
+  assert.match(html, /<button\s+id="resetBtn"[^>]*disabled[^>]*>RESET MATCH<\/button>/);
+  assert.match(game, /function\s+resetMatch\(\)\s*\{\s*if\s*\(!state\.started\)\s*return/);
+  assert.match(game, /state\.stacks\s*=\s*\{\s*player:\s*1000,\s*ai:\s*1000\s*\}/);
+  assert.match(game, /state\.stats\s*=\s*createEmptyStats\(\)/);
+  assert.match(game, /state\.dealer\s*=\s*'player'/);
+  assert.match(game, /startBtn'\)\.addEventListener\('click',[\s\S]*resetBtn'\)\.disabled\s*=\s*false/);
+  assert.match(game, /resetBtn'\)\.addEventListener\('click',\s*resetMatch\)/);
+  assert.match(game, /handEpoch/);
 });

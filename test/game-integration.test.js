@@ -15,7 +15,8 @@ test('browser AI is invoked through the narrow policy observation API', () => {
   assert.doesNotMatch(game, /browserAiPolicy\(state/);
 });
 
-test('browser runout bypasses further actions and reaches showdown', () => {
-  assert.match(game, /while\s*\(state\.street\s*<\s*3\)\s*await advanceStreet\(true\);\s*showdown\(\)/);
+test('browser runout bypasses actions, cancels stale hands, and reaches showdown', () => {
+  assert.match(game, /while\s*\(state\.street\s*<\s*3\s*&&\s*epoch\s*===\s*state\.handEpoch\)\s*await advanceStreet\(true,\s*epoch\)/);
+  assert.match(game, /if\s*\(epoch\s*===\s*state\.handEpoch\)\s*showdown\(\)/);
   assert.match(game, /if\s*\(runoutOnly\)\s*return/);
 });
