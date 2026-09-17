@@ -77,7 +77,7 @@ test('motion control label is synchronized on startup and after toggles', () => 
   assert.ok(clickHandler, 'missing motion click handler');
   assert.match(clickHandler, /state\.motion\s*=\s*!state\.motion/);
   assert.match(clickHandler, new RegExp(`${helperName}\\(\\)`));
-  assert.match(game, new RegExp(`\\n${helperName}\\(\\);\\s*setupAtmosphere\\(\\);`));
+  assert.match(game, new RegExp(`\\n${helperName}\\(\\);[\\s\\S]{0,80}setupAtmosphere\\(\\);`));
 });
 
 test('reduced-motion preference keeps the motion control off and disabled', () => {
@@ -100,12 +100,26 @@ test('page declares an inline icon so startup has no favicon 404', () => {
   assert.match(html, /<link\s+rel="icon"\s+href="data:image\/svg\+xml,[^"]+">/);
 });
 
-test('edition interest check is explicit, non-transactional, and opens repository feedback safely', () => {
-  assert.match(html, /INTEREST CHECK · NOT FOR SALE/);
-  assert.match(html, /This edition is not built or available to buy/);
+test('built challenge edition is labeled non-transactionally and opens repository feedback safely', () => {
+  assert.match(html, /CHALLENGE EDITION · BUILT · NOT FOR SALE/);
+  assert.match(html, /offline-capable package is built and tested, but is not available to buy/);
   assert.match(html, /href="https:\/\/github\.com\/fengweit\/poker-mind-game\/issues\/new\?[^\"]+"/);
   assert.match(html, /target="_blank" rel="noopener noreferrer"/);
-  assert.doesNotMatch(html, /(?:buy now|checkout|purchase now)/i);
+  assert.doesNotMatch(html, />(?:buy now|checkout|purchase now)</i);
+});
+
+test('opponent selector and local challenge controls are native, disclosed controls', () => {
+  assert.match(html, /<select id="opponentProfile"/);
+  for (const profile of ['vesper', 'ember', 'slate']) {
+    assert.match(html, new RegExp(`<option value="${profile}"`));
+  }
+  assert.match(html, /id="challengeTitle"/);
+  assert.match(html, /id="challengeProgress"/);
+  assert.match(html, /id="challengeDock"/);
+  assert.match(html, /<button id="resetProgress"/);
+  assert.match(game, /localStorage/);
+  assert.match(game, /recordChallengeEvent/);
+  assert.match(game, /append\(ui\.opponentChoice\)/);
 });
 
 test('Three.js is self-hosted and the semantic action controls remain native buttons', () => {

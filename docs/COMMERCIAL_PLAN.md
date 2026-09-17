@@ -2,7 +2,7 @@
 
 ## Status and guardrails
 
-THE TELL is currently a free virtual-chip entertainment/decision game. The paid product below is **proposed, not available for purchase**. No checkout, merchant fulfillment, sale, customer, revenue, profit, or validated willingness-to-pay has been observed. Actual revenue remains **unverified: $0 observed**.
+THE TELL is a free virtual-chip entertainment/decision game. A useful challenge-edition fulfillment candidate is now built and tested, but the paid offer remains **proposed, not available for purchase**. No checkout, merchant fulfillment operation, sale, customer, revenue, profit, or validated willingness-to-pay has been observed. Actual revenue remains **unverified: $0 observed**.
 
 There are no deposits, purchased chips, prizes, cash-outs, rake, gambling referrals, or promises of returns. Real-money poker is a separate gated product and is not part of this release.
 
@@ -10,12 +10,14 @@ There are no deposits, purchased chips, prizes, cash-outs, rake, gambling referr
 
 Audience hypothesis: adults who enjoy short strategy games, poker decision practice, cinematic browser games, and replayable AI opponents without real-money wagering.
 
-Proposed offer: a **$9 one-time entertainment edition** containing useful finished content before any sale is offered:
+Proposed offer: a **$9 one-time entertainment edition**. The finished candidate currently contains:
 
-- at least three distinct, tested opponent profiles with disclosed tendencies;
-- additional original rooms/challenges and offline play;
-- local progress and decision-review history with a clear reset/delete option;
-- the complete playable package and a written fulfillment/support path.
+- three distinct, tested opponent profiles with disclosed tendencies and behaviorally different pressure thresholds/sizing;
+- three bounded decision-action challenges, with local progress and a clear reset/delete control;
+- opponent switching that starts a fresh virtual-chip match;
+- a complete 13-file allowlisted offline-capable package, local licensed vendor code, and written start instructions.
+
+Not built: additional rooms and durable per-decision history. Those are optional future scope, not current product claims. Checkout, delivery automation, support contact/terms and an active refund policy also remain external commercial gaps.
 
 The price is a test choice, not evidence of demand. The free browser table stays genuinely playable; the paid concept will not sell chip refills, randomness, cash value, or competitive advantage.
 
@@ -60,5 +62,6 @@ Real-money play remains blocked unless all of the following are independently ap
 ## Current blockers
 
 - `checkout_blocked`: no verified authorized merchant checkout or delivery operation.
+- `fulfillment_candidate_built`: the versioned static package is locally generated and browser-tested, but is not published as a paid download.
 - `revenue_unverified`: no completed payment is observable.
 - `real_money_blocked`: legal, licensing, KYC/geofencing, payment, server-security, audit, and responsible-gambling approvals are absent.

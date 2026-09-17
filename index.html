@@ -33,7 +33,7 @@
       <div class="table" id="table">
         <div class="rail-label rail-top">UNCERTAINTY REVEALS CHARACTER</div>
         <div class="seat opponent-seat">
-          <div class="identity"><span class="avatar">V</span><div><strong>VESPER</strong><small id="aiRead">CALIBRATING</small></div></div>
+          <div class="identity"><span class="avatar" id="opponentInitial">V</span><div><strong id="opponentName">VESPER</strong><small id="aiRead">CALIBRATING</small></div></div>
           <div class="stack"><span class="chip-dot red"></span><b id="aiStack">1,000</b></div>
           <div class="cards compact" id="aiCards" aria-label="Opponent cards"></div>
           <span class="dealer" id="aiDealer">D</span>
@@ -60,7 +60,7 @@
         <div class="metric-row"><span>POT ODDS</span><b id="potOdds">0%</b></div>
         <div class="metric-row"><span>CONFIDENCE</span><b id="confidence">LOW</b></div>
         <div class="recommendation"><span>THE READ</span><strong id="recommendation">OBSERVE</strong><p id="recommendReason">More information arrives with every action.</p></div>
-        <div class="tendency"><span>VESPER PROFILE</span><div class="bar"><i id="aggressionBar"></i></div><small id="tendencyText">Measuring aggression…</small></div>
+        <div class="tendency"><span id="profileHeading">VESPER PROFILE</span><div class="bar"><i id="aggressionBar"></i></div><small id="tendencyText">Measuring aggression…</small></div>
         <button id="inspectorToggle" class="mobile-inspector">INSPECT ↗</button>
       </aside>
     </section>
@@ -78,6 +78,8 @@
       </div>
     </section>
 
+    <section class="challenge-dock" id="challengeDock" aria-live="polite"></section>
+
     <section class="lesson-strip">
       <div><span>01</span><strong>UNCERTAINTY</strong><p>Incomplete information makes every choice meaningful.</p></div>
       <div><span>02</span><strong>AGENCY</strong><p>You choose the price of seeing the next card.</p></div>
@@ -86,20 +88,20 @@
     </section>
 
     <section class="edition-note" aria-labelledby="editionTitle">
-      <div><span class="eyebrow">INTEREST CHECK · NOT FOR SALE</span><h2 id="editionTitle">A proposed $9 offline edition</h2><p>Three tested opponent styles, new original rooms, offline play, and local decision history. This edition is not built or available to buy. Tell us what would make it worth creating.</p></div>
+      <div><span class="eyebrow">CHALLENGE EDITION · BUILT · NOT FOR SALE</span><h2 id="editionTitle">Three opponents. Three decision drills. Offline-capable.</h2><p>The allowlisted offline-capable package is built and tested, but is not available to buy. No checkout is connected. Tell us which challenge would make a legitimate entertainment edition worth $9.</p></div>
       <a href="https://github.com/fengweit/poker-mind-game/issues/new?title=THE%20TELL%20feedback&amp;body=The%20feature%20I%20would%20value%20most%20is%3A%20" target="_blank" rel="noopener noreferrer">SHARE FEEDBACK ↗</a>
     </section>
   </main>
 
   <div class="overlay" id="startOverlay">
-    <div class="title-lockup"><div class="suit-mark">♠</div><p>A GAME OF INCOMPLETE TRUTHS</p><h1>THE <em>TELL</em></h1><div class="rule"></div><p class="intro">Read the range. Price the risk. Notice what uncertainty does to your decisions.</p><button id="startBtn" class="start-btn">TAKE THE SEAT <span>→</span></button><small>18+ · EDUCATIONAL · VIRTUAL CHIPS ONLY · NO REAL-MONEY GAMBLING</small></div>
+    <div class="title-lockup"><div class="suit-mark">♠</div><p>A GAME OF INCOMPLETE TRUTHS</p><h1>THE <em>TELL</em></h1><div class="rule"></div><p class="intro">Read the range. Price the risk. Notice what uncertainty does to your decisions.</p><div class="opponent-choice" id="opponentChoice"><label for="opponentProfile">CHOOSE A DISCLOSED OPPONENT</label><select id="opponentProfile"><option value="vesper">VESPER · ADAPTIVE BALANCE</option><option value="ember">EMBER · WIDE PRESSURE</option><option value="slate">SLATE · PATIENT VALUE</option></select><p id="profileDisclosure"></p><div class="challenge-card"><span>CHALLENGE</span><strong id="challengeTitle"></strong><small id="challengeDetail"></small><b id="challengeProgress"></b></div><button id="resetProgress" type="button">RESET LOCAL PROGRESS</button></div><button id="startBtn" class="start-btn">TAKE THE SEAT <span>→</span></button><small>18+ · EDUCATIONAL · VIRTUAL CHIPS ONLY · NO REAL-MONEY GAMBLING</small></div>
   </div>
 
   <div class="overlay hidden" id="resultOverlay">
     <div class="result-card"><p class="eyebrow">HAND REVIEW</p><h2 id="resultTitle">THE POT IS YOURS</h2><p id="resultSummary"></p><div class="review-grid" id="reviewGrid"></div><p class="mind-note" id="mindNote"></p><button id="nextHandBtn" class="start-btn">DEAL NEXT HAND <span>→</span></button></div>
   </div>
 
-  <dialog id="helpDialog"><button id="closeHelp" aria-label="Close">×</button><p class="eyebrow">FIELD NOTES</p><h2>Win decisions, not every pot.</h2><ol><li><b>Read the price.</b> Pot odds are the equity needed to call.</li><li><b>Read the range.</b> Vesper adapts to your folds, calls, and aggression.</li><li><b>Use position.</b> The dealer acts last after the flop.</li><li><b>Protect the stack.</b> Folding preserves future agency.</li></ol><p>This is an educational simulation for adults 18+. Chips have no monetary value. No purchases, cash-out, or wagering.</p></dialog>
+  <dialog id="helpDialog"><button id="closeHelp" aria-label="Close">×</button><p class="eyebrow">FIELD NOTES</p><h2>Win decisions, not every pot.</h2><ol><li><b>Read the price.</b> Pot odds are the equity needed to call.</li><li><b>Read the range.</b> Each opponent's tendency is disclosed before play; none can see your cards or the runout.</li><li><b>Use position.</b> The dealer acts last after the flop.</li><li><b>Protect the stack.</b> Folding preserves future agency.</li></ol><p>This is an educational simulation for adults 18+. Chips have no monetary value. No purchases, cash-out, or wagering.</p></dialog>
 
   <footer><span>THE TELL / STUDY 01</span><span>18+ · NO REAL MONEY · PLAY AS AN EXERCISE IN DECISION-MAKING</span></footer>
   <script type="module" src="src/game.js"></script>

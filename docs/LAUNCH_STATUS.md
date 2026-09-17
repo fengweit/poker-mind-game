@@ -27,6 +27,10 @@ Status: **live and browser-verified** at https://fengweit.github.io/poker-mind-g
 
 Posted once with the verified public URL and our inspected gameplay capture. Do not repost automatically.
 
+## Challenge-edition update
+
+A useful fulfillment candidate is built and locally browser-verified: three disclosed opponent profiles, three persistent/resettable action challenges, live profile switching, and a 13-file offline-capable allowlisted package with instructions. The public runtime update is pending commit/deploy readback. It remains **not for sale**; the page has feedback only and no transaction CTA.
+
 ## Commercial status
 
-The proposed $9 offline entertainment edition is an interest check only, not built or for sale. `checkout_blocked`; completed payments: 0 verified; actual revenue: $0 observed / unverified.
+The proposed $9 entertainment edition is not available to buy. Repository/environment inspection found no approved merchant checkout or delivery configuration: `checkout_blocked`. Completed payments: 0 observed/unverified; actual revenue: $0 observed / unverified. Additional rooms, durable per-decision history, support/terms, checkout and paid delivery remain unbuilt or externally blocked.

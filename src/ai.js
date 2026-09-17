@@ -77,9 +77,13 @@ export function createHeuristicPolicy({ advisorSamples = 24, advisorRng } = {}) 
     const noisyStrength = strength + (decisionRng() - 0.5) * 0.08;
     const potOdds = calculatePotOdds(betting.toCall, betting.pot) / 100;
     if (betting.toCall > 0 && noisyStrength < potOdds - 0.06 && decisionRng() > 0.1) return { type: 'fold' };
-    const bluffBoost = profile.exploitBluff ? 0.1 : 0;
-    if (betting.canRaise && noisyStrength + bluffBoost > 0.67) {
-      return { type: 'raise', target: raiseTarget(betting) };
+    const adaptiveBluffBoost = profile.exploitBluff ? 0.1 : 0;
+    const styleBluffBoost = Number.isFinite(profile.bluffBoost) ? profile.bluffBoost : 0;
+    const baseRaiseThreshold = Number.isFinite(profile.raiseThreshold) ? profile.raiseThreshold : 0.67;
+    const raiseThreshold = baseRaiseThreshold + (profile.trap ? 0.05 : 0);
+    const raiseFraction = Number.isFinite(profile.raiseFraction) ? profile.raiseFraction : 0.55;
+    if (betting.canRaise && noisyStrength + adaptiveBluffBoost + styleBluffBoost > raiseThreshold) {
+      return { type: 'raise', target: raiseTarget(betting, raiseFraction) };
     }
     return { type: betting.toCall > 0 ? 'call' : 'check' };
   };

@@ -1,9 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtemp, readFile, readdir, rm, symlink, writeFile } from 'node:fs/promises';
-import { tmpdir } from 'node:os';
+import { mkdir, mkdtemp, readFile, readdir, rm, symlink, writeFile } from 'node:fs/promises';
+import { homedir, tmpdir } from 'node:os';
 import { join, relative } from 'node:path';
-import { buildDist, PUBLIC_FILES } from '../scripts/build.mjs';
+import { assertSafeDestination, buildDist, PUBLIC_FILES, assertRegularSource, resetBuildDestination } from '../scripts/build.mjs';
 
 async function filesUnder(root, dir = root) {
   const result = [];
@@ -49,6 +49,53 @@ test('public build rejects a symlink destination', async () => {
     await assert.rejects(() => buildDist({ outDir: link }), /cannot be a symlink/);
   } finally {
     await rm(parent, { recursive: true, force: true });
+  }
+});
+
+test('public build rejects a symlink in a destination ancestor', async () => {
+  const parent = await mkdtemp(join(tmpdir(), 'the-tell-parent-link-'));
+  try {
+    const target = join(parent, 'target');
+    const link = join(parent, 'linked-parent');
+    await symlink(target, link);
+    await assert.rejects(() => buildDist({ outDir: join(link, 'dist') }), /destination path cannot contain symlinks/);
+  } finally {
+    await rm(parent, { recursive: true, force: true });
+  }
+});
+
+test('public build rejects a nested destination symlink ancestor and preserves its target', async () => {
+  const parent = await mkdtemp(join(tmpdir(), 'the-tell-nested-link-'));
+  try {
+    const target = join(parent, 'target');
+    const existing = join(target, 'existing');
+    const link = join(parent, 'linked-parent');
+    await mkdir(existing, { recursive: true });
+    await writeFile(join(existing, 'sentinel.txt'), 'must survive');
+    await symlink(target, link);
+    const destination = join(link, 'existing', 'dist');
+    await assert.rejects(() => buildDist({ outDir: destination }), /destination path cannot contain symlinks/);
+    await assert.rejects(() => resetBuildDestination(join(link, 'existing')), /destination path cannot contain symlinks/);
+    assert.equal(await readFile(join(existing, 'sentinel.txt'), 'utf8'), 'must survive');
+  } finally {
+    await rm(parent, { recursive: true, force: true });
+  }
+});
+
+test('destructive cleanup validation rejects filesystem and allowed-root boundaries', async () => {
+  await assert.rejects(() => assertSafeDestination('/'), /outside an allowed build root/);
+  await assert.rejects(() => assertSafeDestination(homedir()), /outside an allowed build root/);
+  await assert.rejects(() => assertSafeDestination(tmpdir()), /outside an allowed build root/);
+});
+
+test('public build rejects an allowlisted source symlink', async () => {
+  const root = await mkdtemp(join(tmpdir(), 'the-tell-source-link-'));
+  try {
+    await writeFile(join(root, 'private.txt'), 'private sentinel');
+    await symlink(join(root, 'private.txt'), join(root, 'safe.js'));
+    await assert.rejects(() => assertRegularSource(root, 'safe.js'), /allowlisted source cannot contain symlinks/);
+  } finally {
+    await rm(root, { recursive: true, force: true });
   }
 });
 
