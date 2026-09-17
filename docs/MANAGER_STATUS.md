@@ -4,7 +4,7 @@
 Original cinematic poker game with a cash-revenue validation path. No guaranteed profit; real-money wagering blocked on legal, payment and security gates.
 
 ## Current phase
-P0.4, P1.1–P1.6, P2.1–P2.4, P3.1, P4.1 and P4.2 are verified. Betting transitions live in `src/betting.js`; cards/evaluation in `src/core.js`; policies remain isolated in `src/ai.js`; and the presentation-only cinematic renderer lives in `src/scene.js`. The bounded release repair corrected desktop lighting/readability and the browser-default inspector button. The explicit public allowlist and Pages workflow are ready for P4.3 deployment. The 3D slice remains measured browser evidence, not a claim of photorealism or reference-demo equivalence.
+P0.4, P1.1–P1.6, P2.1–P2.4, P3.1 and P4.1–P4.5 are verified. The free game is live at https://fengweit.github.io/poker-mind-game/ and the one authorized launch post is live at https://x.com/tian2035/status/2100441981952446618. Betting transitions live in `src/betting.js`; cards/evaluation in `src/core.js`; policies remain isolated in `src/ai.js`; and the presentation-only cinematic renderer lives in `src/scene.js`. The 3D slice remains measured browser evidence, not a claim of photorealism or reference-demo equivalence.
 
 The settled result overlay defect is fixed and regression-tested: it now owns a z-index above table/scanlines, uses an opaque backdrop/card, remains inert while hidden, and disables card/table/result motion under OS reduced-motion. P1.6 then exercised the full browser flow on loopback: fold, next hand, keyboard raise, guarded reset, all-in showdown, and mobile-width controls. Reset cancellation uses a hand epoch so old AI waits, runouts, dealer changes and delayed reviews cannot mutate the new hand; reset is disabled before the first deal.
 
@@ -36,12 +36,15 @@ The settled result overlay defect is fixed and regression-tested: it now owns a 
 - P3.1 truth is in `docs/COMMERCIAL_PLAN.md`: proposed $9 edition only, not built/not for sale, feedback rather than checkout, zero completed payments observed, `checkout_blocked`, and real-money legal/security gates intact.
 - P4.1/P4.2 independent review: spec PASS; quality initially required least-privilege Pages permissions, then approved after deploy-only credentials, pinned Action SHAs, destination-symlink defense, independent forbidden-path tests and feedback contract coverage. Full suite 60/60; `dist/` has 11 allowlisted runtime files and no private/internal paths.
 - Dist browser proof: WebGL active, self-hosted Three.js loaded, two hero cards after settle, no captured runtime errors; 180-frame sample p50/p95 16.7ms, max 16.8ms.
+- P4.3 deployment: remote HEAD matched `c242ed76059709679fae31f66700105a66055291`; Pages run `35181416736` passed build/deploy. Root and six nested assets returned HTTP 200. Live Chrome loaded WebGL/self-hosted modules, dealt two hero cards, and completed a fold to `YOU FOLD` with 0 captured errors.
+- P4.4 media: 20.0-second H.264 capture, 1200×676 at 6fps, 366,705 bytes, SHA-256 `bc216100a470a88b09b0c44d6ac18786a6db4ddc3402efde54a871d8b6b995d6`. Representative intro/gameplay/result frames were visually inspected; runtime capture reported WebGL, `VESPER FOLDS`, two hero cards and 0 errors.
+- P4.5 post: local browser profile resolved to `@tian2035`; bearer lookup confirmed the same handle/user ID and no prior launch copy. One post with the original video was published and read back by API as ID `2100441981952446618`, exact text/media recorded in `docs/LAUNCH_STATUS.md`.
 
 ## Next source of truth
-`docs/CHECKLIST.md`, P4.3: push the verified release commit, read remote HEAD, enable the free GitHub Pages workflow if authorized, then browser-verify the exact public URL and nested runtime assets. P3.2/P3.3 stay pending because paid content and approved checkout do not exist.
+`docs/CHECKLIST.md`, P3.2: the free launch is complete; the next independent product task is to build genuinely useful paid-edition content/package before any availability claim. P3.3 remains `checkout_blocked`; no payment or revenue is verified.
 
 ## Durable continuation
 Job `f81afb3d50a0` is enabled every 30 minutes for at most 12 runs. At least this scheduled run has completed real implementation/review work; the prior “no run completed” claim was stale. Run outputs are local, with progress committed here. Stop early after accepted launch or external-only blockers.
 
 ## Blockers / risks
-No verified publishing identity, checkout, gambling licenses or revenue. Owner must rotate X credentials exposed to prior session context. GitHub Pages must stage a public allowlist, not upload the whole repository. The procedural cinematic vertical slice is verified on desktop Chrome and mobile emulation; physical-mobile validation, commercial validation, deploy, and launch remain unverified.
+No verified checkout, gambling licenses or revenue. Owner must rotate X credentials exposed to prior session context. The procedural cinematic slice, allowlisted public deployment, original launch media and one X post are verified; physical-mobile validation and paid-edition fulfillment remain unverified.
