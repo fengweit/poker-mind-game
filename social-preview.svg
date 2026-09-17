@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+<defs><radialGradient id="b"><stop stop-color="#173c34"/><stop offset="1" stop-color="#060807"/></radialGradient><linearGradient id="g"><stop stop-color="#e1a14c"/><stop offset="1" stop-color="#8c322f"/></linearGradient><filter id="glow"><feGaussianBlur stdDeviation="22"/></filter></defs>
+<rect width="1200" height="630" fill="url(#b)"/><ellipse cx="600" cy="370" rx="470" ry="190" fill="#123b32" stroke="#8b6334" stroke-width="4"/><ellipse cx="600" cy="370" rx="440" ry="160" fill="none" stroke="#ffffff" stroke-opacity=".08"/>
+<circle cx="600" cy="315" r="135" fill="#d59a45" opacity=".08" filter="url(#glow)"/>
+<g transform="translate(510 260) rotate(-8)"><rect width="86" height="122" rx="8" fill="#e9e4d9"/><text x="14" y="35" font-family="Georgia" font-size="26" fill="#111">A</text><text x="43" y="80" text-anchor="middle" font-size="44">♠</text></g>
+<g transform="translate(604 250) rotate(7)"><rect width="86" height="122" rx="8" fill="#e9e4d9"/><text x="14" y="35" font-family="Georgia" font-size="26" fill="#9b302c">K</text><text x="43" y="80" text-anchor="middle" font-size="44" fill="#9b302c">♥</text></g>
+<text x="600" y="130" text-anchor="middle" font-family="Georgia" font-size="78" letter-spacing="14" fill="#e8e0d0">THE <tspan fill="#d59a45">TELL</tspan></text>
+<text x="600" y="185" text-anchor="middle" font-family="monospace" font-size="14" letter-spacing="7" fill="#8e948e">READ THE RANGE · PRICE THE RISK</text>
+<text x="600" y="555" text-anchor="middle" font-family="monospace" font-size="12" letter-spacing="4" fill="#827b6e">A CINEMATIC POKER STRATEGY STUDY · VIRTUAL CHIPS ONLY</text>
+<rect x="40" y="40" width="1120" height="550" fill="none" stroke="url(#g)" stroke-opacity=".45"/>
+</svg>

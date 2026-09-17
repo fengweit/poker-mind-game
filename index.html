@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#080909">
+  <meta name="description" content="THE TELL — a cinematic, strategy-first heads-up poker mind game. Virtual chips only.">
+  <meta property="og:title" content="THE TELL — Read the risk">
+  <meta property="og:description" content="A cinematic heads-up poker strategy game about uncertainty, agency and inference.">
+  <meta property="og:image" content="social-preview.svg">
+  <title>THE TELL — Poker Mind Game</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <canvas id="atmosphere" aria-hidden="true"></canvas>
+  <div class="scanlines" aria-hidden="true"></div>
+  <header class="topbar">
+    <a class="brand" href="#" aria-label="The Tell home"><span>THE</span> TELL</a>
+    <div class="mode"><i></i> PRIVATE TABLE · VIRTUAL CHIPS</div>
+    <div class="header-actions">
+      <button id="soundBtn" class="icon-btn" aria-label="Toggle sound" title="Sound (M)">SOUND: OFF</button>
+      <button id="motionBtn" class="icon-btn" aria-label="Toggle motion">MOTION: ON</button>
+      <button id="helpBtn" class="icon-btn" aria-label="How to play">?</button>
+    </div>
+  </header>
+
+  <main>
+    <section class="table-stage" id="tableStage" aria-label="Poker table">
+      <div class="light-cone"></div>
+      <div class="table" id="table">
+        <div class="rail-label rail-top">UNCERTAINTY REVEALS CHARACTER</div>
+        <div class="seat opponent-seat">
+          <div class="identity"><span class="avatar">V</span><div><strong>VESPER</strong><small id="aiRead">CALIBRATING</small></div></div>
+          <div class="stack"><span class="chip-dot red"></span><b id="aiStack">1,000</b></div>
+          <div class="cards compact" id="aiCards" aria-label="Opponent cards"></div>
+          <span class="dealer" id="aiDealer">D</span>
+        </div>
+
+        <div class="board-wrap">
+          <div class="pot-label">POT <strong id="pot">30</strong></div>
+          <div class="community" id="community" aria-label="Community cards"></div>
+          <div class="street" id="street">PRE-FLOP</div>
+        </div>
+
+        <div class="seat player-seat">
+          <span class="dealer" id="playerDealer">D</span>
+          <div class="cards" id="playerCards" aria-label="Your cards"></div>
+          <div class="identity"><span class="avatar you">Y</span><div><strong>YOU</strong><small id="playerHand">HIDDEN POTENTIAL</small></div></div>
+          <div class="stack"><span class="chip-dot cyan"></span><b id="playerStack">1,000</b></div>
+        </div>
+        <div class="action-whisper" id="whisper" role="status" aria-live="polite">The cards are random. Your decisions are not.</div>
+      </div>
+
+      <aside class="inspector" id="inspector">
+        <div class="eyebrow">STRATEGY INSPECTOR</div>
+        <div class="equity-dial" id="equityDial"><div><strong id="equity">—</strong><span>EQUITY</span></div></div>
+        <div class="metric-row"><span>POT ODDS</span><b id="potOdds">0%</b></div>
+        <div class="metric-row"><span>CONFIDENCE</span><b id="confidence">LOW</b></div>
+        <div class="recommendation"><span>THE READ</span><strong id="recommendation">OBSERVE</strong><p id="recommendReason">More information arrives with every action.</p></div>
+        <div class="tendency"><span>VESPER PROFILE</span><div class="bar"><i id="aggressionBar"></i></div><small id="tendencyText">Measuring aggression…</small></div>
+        <button id="inspectorToggle" class="mobile-inspector">INSPECT ↗</button>
+      </aside>
+    </section>
+
+    <section class="controls" aria-label="Actions">
+      <div class="decision"><span id="decisionLabel">YOUR DECISION</span><small id="toCallLabel">Choose a line</small></div>
+      <div class="action-buttons">
+        <button class="action fold" data-action="fold"><kbd>F</kbd><span>FOLD</span><small>Release the hand</small></button>
+        <button class="action check" data-action="check"><kbd>C</kbd><span id="checkText">CHECK</span><small id="checkSub">Keep pressure neutral</small></button>
+        <button class="action raise" data-action="raise"><kbd>R</kbd><span id="raiseText">RAISE</span><small id="raiseSub">Apply pressure</small></button>
+      </div>
+      <div class="raise-control" id="raiseControl">
+        <label for="raiseSlider">RAISE TO <strong id="raiseAmount">60</strong></label>
+        <input type="range" id="raiseSlider" min="40" max="1000" step="10" value="60">
+      </div>
+    </section>
+
+    <section class="lesson-strip">
+      <div><span>01</span><strong>UNCERTAINTY</strong><p>Incomplete information makes every choice meaningful.</p></div>
+      <div><span>02</span><strong>AGENCY</strong><p>You choose the price of seeing the next card.</p></div>
+      <div><span>03</span><strong>THE TELL</strong><p>Patterns invite inference—but never certainty.</p></div>
+      <div><span>04</span><strong>LOSS AVERSION</strong><p>Folding is a skill. Sunk chips are already gone.</p></div>
+    </section>
+  </main>
+
+  <div class="overlay" id="startOverlay">
+    <div class="title-lockup"><div class="suit-mark">♠</div><p>A GAME OF INCOMPLETE TRUTHS</p><h1>THE <em>TELL</em></h1><div class="rule"></div><p class="intro">Read the range. Price the risk. Notice what uncertainty does to your decisions.</p><button id="startBtn" class="start-btn">TAKE THE SEAT <span>→</span></button><small>18+ · EDUCATIONAL · VIRTUAL CHIPS ONLY · NO REAL-MONEY GAMBLING</small></div>
+  </div>
+
+  <div class="overlay hidden" id="resultOverlay">
+    <div class="result-card"><p class="eyebrow">HAND REVIEW</p><h2 id="resultTitle">THE POT IS YOURS</h2><p id="resultSummary"></p><div class="review-grid" id="reviewGrid"></div><p class="mind-note" id="mindNote"></p><button id="nextHandBtn" class="start-btn">DEAL NEXT HAND <span>→</span></button></div>
+  </div>
+
+  <dialog id="helpDialog"><button id="closeHelp" aria-label="Close">×</button><p class="eyebrow">FIELD NOTES</p><h2>Win decisions, not every pot.</h2><ol><li><b>Read the price.</b> Pot odds are the equity needed to call.</li><li><b>Read the range.</b> Vesper adapts to your folds, calls, and aggression.</li><li><b>Use position.</b> The dealer acts last after the flop.</li><li><b>Protect the stack.</b> Folding preserves future agency.</li></ol><p>This is an educational simulation for adults 18+. Chips have no monetary value. No purchases, cash-out, or wagering.</p></dialog>
+
+  <footer><span>THE TELL / STUDY 01</span><span>18+ · NO REAL MONEY · PLAY AS AN EXERCISE IN DECISION-MAKING</span></footer>
+  <script type="module" src="src/game.js"></script>
+</body>
+</html>
