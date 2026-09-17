@@ -15,5 +15,8 @@ P1 prototype being built by the existing Sol subagent. Astra authored the plan. 
 ## Next source of truth
 `docs/CHECKLIST.md`, beginning P0.4 / P1.1. Wait for prototype handoff before changing its files; do not erase uncommitted work.
 
+## Durable continuation
+Job `f81afb3d50a0` is registered and read back as enabled, every 30 minutes for at most 12 runs. First scheduled run: 2026-09-16 22:09 EDT. Scheduler reports gateway running. No scheduled run has completed yet; registration is not execution proof. Run outputs are local, with progress committed here. Stop early after accepted launch or external-only blockers.
+
 ## Blockers / risks
-No verified publishing identity, checkout, gambling licenses or revenue. Existing agent lifetime is not durable overnight execution. Scheduler registration/runs must be verified separately. GitHub Pages must stage a public allowlist, not upload the whole repository.
+No verified publishing identity, checkout, gambling licenses or revenue. Initial prototype acceptance remains pending its handoff. GitHub Pages must stage a public allowlist, not upload the whole repository.
