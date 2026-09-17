@@ -8,7 +8,7 @@ const ui = {
   confidence: $('confidence'), recommendation: $('recommendation'), reason: $('recommendReason'), aggressionBar: $('aggressionBar'),
   tendencyText: $('tendencyText'), decision: $('decisionLabel'), toCall: $('toCallLabel'), checkText: $('checkText'), checkSub: $('checkSub'),
   raiseText: $('raiseText'), raiseSub: $('raiseSub'), raiseSlider: $('raiseSlider'), raiseAmount: $('raiseAmount'), result: $('resultOverlay'),
-  resultTitle: $('resultTitle'), resultSummary: $('resultSummary'), reviewGrid: $('reviewGrid'), mindNote: $('mindNote')
+  resultTitle: $('resultTitle'), resultSummary: $('resultSummary'), reviewGrid: $('reviewGrid'), mindNote: $('mindNote'), inspector: $('inspector')
 };
 
 const state = {
